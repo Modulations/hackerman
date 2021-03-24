@@ -1,0 +1,8 @@
+c: hash passwd, send usrname
+s: send token
+c: auth w/ token
+s: send usrname
+c: ask for systems
+s: send systems, ips, names, and ids
+c: choose system
+s: [happy lights]

@@ -1,5 +1,9 @@
 var net = require('net');
-const port = 1337
+const mongoose = require('mongoose');
+const db = mongoose.connection;
+
+//const port = 1337
+const port = 2332;
 
 var clients: Array<object> = [];
 
@@ -15,6 +19,16 @@ function createUUID(){
     
     return uuid
 }
+
+mongoose.connect('mongodb://localhost/hackerman', {
+	useNewUrlParser: true,
+	useUnifiedTopology: true
+});
+
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+	console.log("DB connection established")
+});
 
 var server = net.createServer((socket: any) => {
 	console.log('Connection established\r\n');
@@ -72,14 +86,15 @@ var server = net.createServer((socket: any) => {
 	});
 
 	socket.on('data', (data: any) => {
+		// check if they're authenticated
+		socket.write('SERVER SAYS HI');
 		console.log(data.toString());
 
-		socket.write("SERVER SAYS HI");
+		//socket.write("SERVER SAYS HI");
 		socket.pipe(socket);
 
 		if (false) { // example of sending data to other clients
 			var testSocket: any = clients[0];
-			testSocket.write('SERVER SAYS HI');
 			testSocket.pipe(testSocket);
 		}
 		console.log();
@@ -91,8 +106,15 @@ server.on('end', () => {
 })
 
 server.on('error', (err: any) => {
+	if (err.code === 'EADDRINUSE') {
+		console.log('Address in use, retrying...');
+		setTimeout(() => {
+			server.close();
+			server.listen(port, '127.0.0.1');
+		}, 1000);
+	}
 	throw err;
 })
 
-server.listen(1337, '127.0.0.1');
+server.listen(port, '127.0.0.1');
 console.log(`Server listening on port ${port}`)

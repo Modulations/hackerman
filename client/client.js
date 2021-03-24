@@ -18,6 +18,10 @@ var storedID = createUUID();
 client.connect(1337, '127.0.0.1', function() {
 	console.log('Connected');
 	client.write('CLIENT INIT | STORED ACCOUNT ID: ' + storedID);
+    testObj = {"event":"auth", "clientid":storedID, data:{"username":"test", "password":"admin"}};
+    client.write(Buffer.from(JSON.stringify(testObj)));
+    testObj = {"event":"game", "clientid":storedID, data:{"cmd":"connect 127.0.0.1"}};
+    client.write(Buffer.from(JSON.stringify(testObj)));
 });
 
 client.on('data', function(data) {
