@@ -1,11 +1,13 @@
-var net = require('net');
+const Websocket = require('ws');
 const mongoose = require('mongoose');
 const db = mongoose.connection;
 
 //const port = 1337
 const port = 2332;
 
-var clients: Array<object> = [];
+//var clients: Array<object> = [];
+var clients: Array<any> = [];
+// change type later
 
 function createUUID(){
    
@@ -20,6 +22,13 @@ function createUUID(){
     return uuid
 }
 
+/*type MySocket = Object | ISocket
+interface ISocket {
+	id: string;
+}
+*/
+
+// start db
 mongoose.connect('mongodb://localhost/hackerman', {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
@@ -29,17 +38,50 @@ db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
 	console.log("DB connection established")
 });
+// end db
 
-var server = net.createServer((socket: any) => {
-	console.log('Connection established\r\n');
+const wss = new Websocket.Server({ port: port })
+
+wss.on('connection', (ws: any) => {
+	console.log('\nConnection established\r\n');
 
 	var clientId: string = createUUID();
-
-	socket.id = clientId;
-	console.log(socket.id);
-
-	clients.push(socket);
+	ws.id = clientId;
+	console.log(ws.id);
+	//console.log(ws)
+	clients.push(ws);
 	console.log("Active Connections: " + clients.length);
+
+	ws.on('message', (message: any) => {
+		console.log('received: %s', message);
+	});
+	ws.on('close', (data: any) => {
+		console.log(ws.id);
+		// so i know who's doing what
+
+		var targetIndex: number = -1;
+		for (var v: number = 0; v < clients.length; v++) {
+			var client: any = clients[v];
+
+			if (client.id === ws.id)
+				targetIndex = v;
+		}
+		// ^  find and
+		// v  remove who left from the list of clients
+		clients.splice(targetIndex, 1);
+
+		console.log('client disconnected');
+		console.log("Active Connections: " + clients.length);
+	});
+  
+	ws.send('test');
+});
+
+wss.on('error', (err : Error) => {
+	console.log("CRITICAL ERROR\n" + Error);
+})
+
+/*var server = net.createServer((socket: any) => {
 
 	socket.on('end', () => {
 		//
@@ -66,7 +108,8 @@ var server = net.createServer((socket: any) => {
 	});
 	
 	socket.on('error', (data: any) => {
-		if (data.code === "ECONNRESET") {
+		console.log(data);
+		//if (data.code === "ECONNRESET") {
 			console.log(socket.id);
 
 			var targetIndex: number = -1;
@@ -82,16 +125,15 @@ var server = net.createServer((socket: any) => {
 
 			console.log("Client unexpectedly disconnected");
 			console.log("Active Connections: " + clients.length);
-		}
+		//}
 	});
 
 	socket.on('data', (data: any) => {
 		// check if they're authenticated
-		socket.write('SERVER SAYS HI');
 		console.log(data.toString());
+		socket.write('SERVER SAYS HI');
 
 		//socket.write("SERVER SAYS HI");
-		socket.pipe(socket);
 
 		if (false) { // example of sending data to other clients
 			var testSocket: any = clients[0];
@@ -99,6 +141,7 @@ var server = net.createServer((socket: any) => {
 		}
 		console.log();
 	});
+	socket.pipe(socket);
 });
 
 server.on('end', () => {
@@ -116,5 +159,5 @@ server.on('error', (err: any) => {
 	throw err;
 })
 
-server.listen(port, '127.0.0.1');
+server.listen(port, '127.0.0.1');*/
 console.log(`Server listening on port ${port}`)

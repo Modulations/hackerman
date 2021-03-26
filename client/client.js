@@ -1,4 +1,6 @@
 var net = require('net');
+//const PORT = 1337;
+const PORT = 2332;
 
 function createUUID(){
    
@@ -15,13 +17,14 @@ function createUUID(){
 
 var client = new net.Socket();
 var storedID = createUUID();
-client.connect(1337, '127.0.0.1', function() {
+client.connect(PORT, '127.0.0.1', function() {
 	console.log('Connected');
-	client.write('CLIENT INIT | STORED ACCOUNT ID: ' + storedID);
+	client.write('HI HELLO I AM 100% CONNECTED');
+	/*client.write('CLIENT INIT | STORED ACCOUNT ID: ' + storedID);
     testObj = {"event":"auth", "clientid":storedID, data:{"username":"test", "password":"admin"}};
     client.write(Buffer.from(JSON.stringify(testObj)));
     testObj = {"event":"game", "clientid":storedID, data:{"cmd":"connect 127.0.0.1"}};
-    client.write(Buffer.from(JSON.stringify(testObj)));
+    client.write(Buffer.from(JSON.stringify(testObj)));*/
 });
 
 client.on('data', function(data) {
