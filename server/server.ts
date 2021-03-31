@@ -53,7 +53,9 @@ wss.on('connection', (ws: any) => {
 	console.log("Active Connections: " + clients.length);
 
 	ws.on('message', (message: any) => {
+		console.log(ws.id);
 		console.log('received: %s', message);
+		ws.send("hello!");
 	});
 	ws.on('close', (data: any) => {
 		console.log(ws.id);
@@ -74,7 +76,7 @@ wss.on('connection', (ws: any) => {
 		console.log("Active Connections: " + clients.length);
 	});
   
-	ws.send('test');
+	ws.send('{"event":"test"}');
 });
 
 wss.on('error', (err : Error) => {
