@@ -35,7 +35,7 @@ mongoose.connect('mongodb://localhost/hackerman', {
 });
 
 db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
+db.once('open', () => {
 	console.log("DB connection established")
 });
 // end db
@@ -55,7 +55,7 @@ wss.on('connection', (ws: any) => {
 	ws.on('message', (message: any) => {
 		console.log(ws.id);
 		console.log('received: %s', message);
-		ws.send("hello!");
+		ws.send('{"event":"test", "text":"Hello world.\nNewline!"}');
 	});
 	ws.on('close', (data: any) => {
 		console.log(ws.id);
@@ -73,10 +73,13 @@ wss.on('connection', (ws: any) => {
 		clients.splice(targetIndex, 1);
 
 		console.log('client disconnected');
+		if (data !== null) {
+			console.log('data sent: ' + data);
+		}
 		console.log("Active Connections: " + clients.length);
 	});
   
-	ws.send('{"event":"test"}');
+	//ws.send('{"event":"test"}');
 });
 
 wss.on('error', (err : Error) => {
