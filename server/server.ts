@@ -38,7 +38,89 @@ db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', () => {
 	console.log("DB connection established")
 });
-// end db
+// end db establishment
+
+
+
+//  | | | | | | | | \\
+// start DB testing \\
+//  | | | | | | | | \\
+
+const Schema = mongoose.Schema;
+const ObjectId = Schema.ObjectId;
+
+const acctData = new Schema({
+	id: { type: String },
+	username: { type: String },
+	passwdHash: { type: String },
+	network: { type: String },
+	homeComp: { type: String },
+	creationDate: { type: Date }
+});
+
+const compData = new Schema({
+	id: { type: String },
+	address: { type: String },
+	fsId: { type: String },
+	balance: { type: Number },
+	specs: { type: Object },
+	creationDate: { type: Date }
+});
+
+const upgData = new Schema({
+	name: { type: String },
+	type: { type: String },
+	tier: { type: Number },
+	loaded: { type: Boolean },
+	description: { type: String },
+	index: { type: Number },
+	location: { type: String },
+	sn: { type: String },
+	creationDate: { type: Date }
+});
+
+const Account = mongoose.model('account', acctData);
+const Computer = mongoose.model('computer', compData);
+
+var newAcct = new Account({id:"RANDOMPCIDENTIFIER", username:"pogTest", passwdHash:"testHASH", network:"some_random_id", homeComp:"SoMeRaNdOmId", creationDate:Date.now()});
+var newComp = new Computer({id:"RANDOMCOMPUTERIDENTIFIER", address:"alpha_psi_w39xcd", fsId:"someOTHERrandomID", balance:159178420, specs:{}, creationDate:Date.now()});
+//console.log(newAcct);
+//console.log(newComp);
+
+var idToSearch: String = "RANDOMPCIDENTIFIER";
+var otherIdToSearch: String = "RANDOMCOMPUTERIDENTIFIER";
+
+// THE FOLLOWING CODE BLOCKS:
+// CHECK IF AN ACCOUNT/COMPUTER WITH THE SAME ID ALREADY EXISTS IN THE DB
+// IF NOT, WRITE TO DB.
+// IF SO, DO NOTHING.
+Account.find({id:idToSearch}, (err: any, res: any) => {
+	if (err) { console.log(err); }
+	if (res[0] == null || res[0] == undefined) { // does it exist?
+		newAcct.save((err: any) => { // save to db
+			if (err) return console.error(err);
+			console.log("Created new user " + newAcct.username);
+		});
+	}
+	console.log("User " + newAcct.username + " already exists.");
+	//console.log(res);
+});
+
+Computer.find({id:otherIdToSearch}, (err: any, res: any) => {
+	if (err) { console.log(err); }
+	if (res[0] == null || res[0] == undefined) { // does it exist?
+		newComp.save((err: any) => { // save to db
+			if (err) return console.error(err);
+			console.log("Created new computer " + newComp.address);
+		});
+	}
+	console.log("Computer " + newComp.address + " already exists.");
+	//console.log(res);
+});
+
+//  | | | | | | | \\
+// end DB testing \\
+//  | | | | | | | \\
 
 const wss = new Websocket.Server({ port: port })
 
