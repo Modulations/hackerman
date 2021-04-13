@@ -1,6 +1,8 @@
 const Websocket = require('ws');
 const mongoose = require('mongoose');
+const uuid = require('uuid');
 const db = mongoose.connection;
+const BSON = require('bson');
 
 //const port = 1337
 const port = 2332;
@@ -8,25 +10,6 @@ const port = 2332;
 //var clients: Array<object> = [];
 var clients: Array<any> = [];
 // change type later
-
-function createUUID(){
-   
-    let dt = new Date().getTime()
-    
-    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        const r = (dt + Math.random()*16)%16 | 0
-        dt = Math.floor(dt/16)
-        return (c=='x' ? r :(r&0x3|0x8)).toString(16)
-    })
-    
-    return uuid
-}
-
-/*type MySocket = Object | ISocket
-interface ISocket {
-	id: string;
-}
-*/
 
 // start db
 mongoose.connect('mongodb://localhost/hackerman', {
@@ -64,6 +47,8 @@ const compData = new Schema({
 	fsId: { type: String },
 	balance: { type: Number },
 	specs: { type: Object },
+	authUsers: { type: Array },
+	breached: { type: Boolean },
 	creationDate: { type: Date }
 });
 
@@ -81,11 +66,11 @@ const upgData = new Schema({
 
 const Account = mongoose.model('account', acctData);
 const Computer = mongoose.model('computer', compData);
+const Upgrade = mongoose.model('upgrade', compData);
 
-var newAcct = new Account({id:"RANDOMPCIDENTIFIER", username:"pogTest", passwdHash:"testHASH", network:"some_random_id", homeComp:"SoMeRaNdOmId", creationDate:Date.now()});
+var newAcct = new Account({id:"RANDOMPCIDENTIFIER", username:"root", passwdHash:"testHASH", network:"some_random_id", homeComp:"SoMeRaNdOmId", creationDate:Date.now()});
 var newComp = new Computer({id:"RANDOMCOMPUTERIDENTIFIER", address:"alpha_psi_w39xcd", fsId:"someOTHERrandomID", balance:159178420, specs:{}, creationDate:Date.now()});
-//console.log(newAcct);
-//console.log(newComp);
+var newUpg = new Upgrade({creationDate:Date.now()});
 
 var idToSearch: String = "RANDOMPCIDENTIFIER";
 var otherIdToSearch: String = "RANDOMCOMPUTERIDENTIFIER";
@@ -103,19 +88,17 @@ Account.find({id:idToSearch}, (err: any, res: any) => {
 		});
 	}
 	console.log("User " + newAcct.username + " already exists.");
-	//console.log(res);
 });
 
 Computer.find({id:otherIdToSearch}, (err: any, res: any) => {
 	if (err) { console.log(err); }
 	if (res[0] == null || res[0] == undefined) { // does it exist?
 		newComp.save((err: any) => { // save to db
-			if (err) return console.error(err);
+			if (err) return console.log(err);
 			console.log("Created new computer " + newComp.address);
 		});
 	}
 	console.log("Computer " + newComp.address + " already exists.");
-	//console.log(res);
 });
 
 //  | | | | | | | \\
@@ -127,22 +110,28 @@ const wss = new Websocket.Server({ port: port })
 wss.on('connection', (ws: any) => {
 	console.log('\nConnection established\r\n');
 
-	var clientId: string = createUUID();
+	var clientId: string = uuid.v4();
 	ws.id = clientId;
 	console.log(ws.id);
-	//console.log(ws)
 	clients.push(ws);
 	console.log("Active Connections: " + clients.length);
 
 	ws.on('message', (message: any) => {
 		console.log(ws.id);
+		message = JSON.parse(message.toString());
 		console.log('received: %s', message);
+		console.log(message.event);
+		if (message.event == "login") {
+			Account.findOne({username:message.data.username}, (err: any, res: any) => {
+				if (err) {console.log(err);}
+				ws.send('{"event":\"auth\"}');
+				return res;
+			});
+		}
 		ws.send('{"event":"test", "text":"Hello world.\nNewline!"}');
 	});
 	ws.on('close', (data: any) => {
 		console.log(ws.id);
-		// so i know who's doing what
-
 		var targetIndex: number = -1;
 		for (var v: number = 0; v < clients.length; v++) {
 			var client: any = clients[v];
@@ -156,7 +145,11 @@ wss.on('connection', (ws: any) => {
 
 		console.log('client disconnected');
 		if (data !== null) {
-			console.log('data sent: ' + data);
+			try {
+				console.log('data sent: ' + data);
+			} catch {
+				console.log('client returned unknown or corrupt data.')
+			}
 		}
 		console.log("Active Connections: " + clients.length);
 	});
@@ -165,86 +158,7 @@ wss.on('connection', (ws: any) => {
 });
 
 wss.on('error', (err : Error) => {
-	console.log("CRITICAL ERROR\n" + Error);
+	console.log("CRITICAL ERROR\n" + Error.toString());
 })
 
-/*var server = net.createServer((socket: any) => {
-
-	socket.on('end', () => {
-		//
-		// WARNING
-		//
-		// this code is untested
-		// should work, probably won't
-		//
-		console.log(socket.id);
-
-		var targetIndex: number = -1;
-
-		for (var v: number = 0; v < clients.length; v++) {
-			var client: any = clients[v];
-
-			if (client.id === socket.id)
-				targetIndex = v;
-		}
-
-		clients.splice(targetIndex, 1);
-
-		console.log('client disconnected');
-		console.log("Active Connections: " + clients.length);
-	});
-	
-	socket.on('error', (data: any) => {
-		console.log(data);
-		//if (data.code === "ECONNRESET") {
-			console.log(socket.id);
-
-			var targetIndex: number = -1;
-
-			for (var v: number = 0; v < clients.length; v++) {
-				var client: any = clients[v];
-
-				if (client.id === socket.id)
-					targetIndex = v;
-			}
-
-			clients.splice(targetIndex, 1);
-
-			console.log("Client unexpectedly disconnected");
-			console.log("Active Connections: " + clients.length);
-		//}
-	});
-
-	socket.on('data', (data: any) => {
-		// check if they're authenticated
-		console.log(data.toString());
-		socket.write('SERVER SAYS HI');
-
-		//socket.write("SERVER SAYS HI");
-
-		if (false) { // example of sending data to other clients
-			var testSocket: any = clients[0];
-			testSocket.pipe(testSocket);
-		}
-		console.log();
-	});
-	socket.pipe(socket);
-});
-
-server.on('end', () => {
-	console.log("pog")
-})
-
-server.on('error', (err: any) => {
-	if (err.code === 'EADDRINUSE') {
-		console.log('Address in use, retrying...');
-		setTimeout(() => {
-			server.close();
-			server.listen(port, '127.0.0.1');
-		}, 1000);
-	}
-	throw err;
-})
-
-server.listen(port, '127.0.0.1');*/
 console.log(`Server listening on port ${port}`)
