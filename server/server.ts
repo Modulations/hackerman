@@ -16,6 +16,7 @@ function genNodeName() {
 	charList[Math.floor(Math.random() * charList.length)] +
 	charList[Math.floor(Math.random() * charList.length)] +
 	charList[Math.floor(Math.random() * charList.length)] +
+	charList[Math.floor(Math.random() * charList.length)] +
 	charList[Math.floor(Math.random() * charList.length)];
 	return totalNode;
 }
