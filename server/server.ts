@@ -7,6 +7,19 @@ const BSON = require('bson');
 //const port = 1337
 const port = 2332;
 
+function genNodeName() {
+	var greekChars: Array<String> = "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omikron pi rho sigma tau upsilon phi chi psi omega".split(" ");
+	var charList: Array<String> = "qwertyuiopasdfghjklzxcvbnm1234567890".split("");
+	var totalNode: String = greekChars[Math.floor(Math.random() * greekChars.length)] + "_" +
+	greekChars[Math.floor(Math.random() * greekChars.length)] + "_" + 
+	charList[Math.floor(Math.random() * charList.length)] +
+	charList[Math.floor(Math.random() * charList.length)] +
+	charList[Math.floor(Math.random() * charList.length)] +
+	charList[Math.floor(Math.random() * charList.length)] +
+	charList[Math.floor(Math.random() * charList.length)];
+	return totalNode;
+}
+
 //var clients: Array<object> = [];
 var clients: Array<any> = [];
 // change type later
@@ -44,7 +57,6 @@ const acctData = new Schema({
 const compData = new Schema({
 	id: { type: String },
 	address: { type: String },
-	fsId: { type: String },
 	balance: { type: Number },
 	specs: { type: Object },
 	authUsers: { type: Array },
@@ -55,6 +67,8 @@ const compData = new Schema({
 const upgData = new Schema({
 	name: { type: String },
 	type: { type: String },
+	versionFrom: { type: String },
+	versionTo: { type: String },
 	tier: { type: Number },
 	loaded: { type: Boolean },
 	description: { type: String },
@@ -66,20 +80,21 @@ const upgData = new Schema({
 
 const Account = mongoose.model('account', acctData);
 const Computer = mongoose.model('computer', compData);
-const Upgrade = mongoose.model('upgrade', compData);
+const Upgrade = mongoose.model('upgrade', upgData);
 
-var newAcct = new Account({id:"RANDOMPCIDENTIFIER", username:"root", passwdHash:"testHASH", network:"some_random_id", homeComp:"SoMeRaNdOmId", creationDate:Date.now()});
-var newComp = new Computer({id:"RANDOMCOMPUTERIDENTIFIER", address:"alpha_psi_w39xcd", fsId:"someOTHERrandomID", balance:159178420, specs:{}, creationDate:Date.now()});
-var newUpg = new Upgrade({creationDate:Date.now()});
+var acctId: String = uuid.v4();
+var compId: String = uuid.v4();
+var upgrId: String = uuid.v4();
 
-var idToSearch: String = "RANDOMPCIDENTIFIER";
-var otherIdToSearch: String = "RANDOMCOMPUTERIDENTIFIER";
+var newAcct = new Account({id:acctId, username:"root", passwdHash:"testHASH", network:"some_random_id", homeComp:compId, creationDate:Date.now()});
+var newComp = new Computer({id:compId, address:"alpha_psi_w39xcd", balance:159178420, specs:{}, creationDate:Date.now()});
+var newUpg = new Upgrade({name:"something_wrong_here_v1", type:"unknown", versionFrom:"0", versionTo:"100", tier:0, loaded:false, description:"I wanted you cause you stood out from the rest ## I wanted you cause you said you don’t belong here ## That you could find a better place ## But I think there’s something wrong here ##", index:0, location:"root", sn:upgrId, creationDate:Date.now()});
 
 // THE FOLLOWING CODE BLOCKS:
 // CHECK IF AN ACCOUNT/COMPUTER WITH THE SAME ID ALREADY EXISTS IN THE DB
 // IF NOT, WRITE TO DB.
 // IF SO, DO NOTHING.
-Account.find({id:idToSearch}, (err: any, res: any) => {
+Account.find({username:"root"}, (err: any, res: any) => {
 	if (err) { console.log(err); }
 	if (res[0] == null || res[0] == undefined) { // does it exist?
 		newAcct.save((err: any) => { // save to db
@@ -87,10 +102,10 @@ Account.find({id:idToSearch}, (err: any, res: any) => {
 			console.log("Created new user " + newAcct.username);
 		});
 	}
-	console.log("User " + newAcct.username + " already exists.");
+	//console.log("User " + newAcct.username + " already exists.");
 });
 
-Computer.find({id:otherIdToSearch}, (err: any, res: any) => {
+Computer.find({address:"alpha_psi_w39xcd"}, (err: any, res: any) => {
 	if (err) { console.log(err); }
 	if (res[0] == null || res[0] == undefined) { // does it exist?
 		newComp.save((err: any) => { // save to db
@@ -98,7 +113,18 @@ Computer.find({id:otherIdToSearch}, (err: any, res: any) => {
 			console.log("Created new computer " + newComp.address);
 		});
 	}
-	console.log("Computer " + newComp.address + " already exists.");
+	//console.log("Computer " + newComp.address + " already exists.");
+});
+
+Upgrade.find({name:"something_wrong_here_v1"}, (err: any, res: any) => {
+	if (err) { console.log(err); }
+	if (res[0] == null || res[0] == undefined) { // does it exist?
+		newUpg.save((err: any) => { // save to db
+			if (err) return console.log(err);
+			console.log("Created new upgrade " + newUpg.name);
+		});
+	}
+	//console.log("Upgrade " + newUpg.name + " already exists.");
 });
 
 //  | | | | | | | \\
@@ -108,27 +134,98 @@ Computer.find({id:otherIdToSearch}, (err: any, res: any) => {
 const wss = new Websocket.Server({ port: port })
 
 wss.on('connection', (ws: any) => {
-	console.log('\nConnection established\r\n');
+	console.log('\nConnection established\n');
 
 	var clientId: string = uuid.v4();
 	ws.id = clientId;
+	ws.authed = false;
+	ws.currentUser = "???";
+	ws.currentComp = 0;
 	console.log(ws.id);
 	clients.push(ws);
 	console.log("Active Connections: " + clients.length);
 
 	ws.on('message', (message: any) => {
-		console.log(ws.id);
+		console.log(ws.id + " (" + ws.currentUser + ")");
 		message = JSON.parse(message.toString());
 		console.log('received: %s', message);
-		console.log(message.event);
+		console.log("Event Type: " + message.event);
 		if (message.event == "login") {
 			Account.findOne({username:message.data.username}, (err: any, res: any) => {
 				if (err) {console.log(err);}
-				ws.send('{"event":\"auth\"}');
+				if (res != null || res != undefined) {
+					ws.authed = true;
+					ws.currentUser = message.data.username;
+					ws.send('{"event":"auth", "ok":true}');
+					console.log("Found and successfully authenticated user " + res.username);
+				} else {
+					ws.authed = false;
+					ws.currentUser = "???";
+					ws.send('{"event":"auth", "ok":false}');
+					console.log("Authentication failed for user " + message.data.username + ". User not found");
+				}
 				return res;
 			});
 		}
-		ws.send('{"event":"test", "text":"Hello world.\nNewline!"}');
+		else if (message.event == "register") {
+			Account.findOne({username:message.data.username}, (err: any, res: any) => { // user already exists
+				if (err) {console.log(err)}
+				if (res != null || res != undefined) { // whatever comes back IS NOT NULL OR UNDEFINED
+					ws.authed = false;
+					ws.currentUser = "???";
+					ws.send('{"event":"auth", "ok":false}');
+					console.log("User " + message.data.username + " failed authentication");
+				}
+				return res;
+			});
+			
+			var acctId: String = uuid.v4();
+			var compId: String = uuid.v4();
+
+			var nodeName = genNodeName();
+			var newAcct = new Account({id:acctId, username:message.data.username, passwdHash:message.data.password, network:"some_random_id", homeComp:compId, creationDate:Date.now()});
+			var newComp = new Computer({id:compId, address:nodeName, balance:0, specs:{}, creationDate:Date.now()});
+			Account.find({username:message.data.username}, (err: any, res: any) => {
+				if (err) { console.log(err) }
+				if (res[0] == null || res[0] == undefined) { // does it exist?
+					newAcct.save((err: any) => { // save to db
+						if (err) return console.error(err);
+						console.log("Created new user " + newAcct.username);
+					});
+				}
+			});
+			
+			Computer.find({address:nodeName}, (err: any, res: any) => {
+				if (err) { console.log(err); }
+				if (res[0] == null || res[0] == undefined) { // does it exist?
+					newComp.save((err: any) => { // save to db
+						if (err) return console.log(err);
+						console.log("Created new computer " + newComp.address);
+					});
+				}
+			});
+
+			ws.authed = true;
+			ws.currentUser = message.data.username;
+			ws.send('{"event":\"auth\", "ok":true}');
+			console.log("Created and successfully authenticated user " + message.data.username);
+		}
+		else if (!ws.authed) {
+			ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')
+		}
+		else if (message.event == "command") {
+			console.log("Received command: " + message.data.cmd)
+			var cmdParts: Array<String> = message.data.cmd.split(" ");
+			console.log(cmdParts);
+			// uhhh more shit i think
+		}
+		else if (message.event == "exit" || message.event == "shutdown" || message.event == "reset") {
+			ws.authed = false;
+			ws.send('{"event":"exit", "ok":true, "desc":"Logged out."}')
+			console.log("Unauthenticated user " + ws.currentUser);
+			ws.currentUser = "formerly " + ws.currentUser;
+		}
+		//ws.send('{"event":"test", "text":"Hello world.\nNewline!"}');
 	});
 	ws.on('close', (data: any) => {
 		console.log(ws.id);
@@ -158,7 +255,7 @@ wss.on('connection', (ws: any) => {
 });
 
 wss.on('error', (err : Error) => {
-	console.log("CRITICAL ERROR\n" + Error.toString());
+	console.log("CRITICAL ERROR\n" + err.toString());
 })
 
 console.log(`Server listening on port ${port}`)
