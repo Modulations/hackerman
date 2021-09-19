@@ -253,6 +253,7 @@ wss.on('connection', (ws: any) => {
 	});
   
 	//ws.send('{"event":"test"}');
+	console.log("");
 });
 
 wss.on('error', (err : Error) => {
