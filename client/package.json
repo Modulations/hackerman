@@ -8,5 +8,8 @@
     "start": "node client.js"
   },
   "author": "4AM STUDIOS",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.2.2"
+  }
 }
