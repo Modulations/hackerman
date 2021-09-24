@@ -8,7 +8,8 @@ const BSON = require('bson');
 
 // file imports
 const configFile = require("./config.json")
-const { Account, Upgrade, Computer, databaseInit, Network, databasePull, accountDataset, networkDataset, upgradeDataset, computerDataset } = require("./databaseSchemas.js")
+const { Account, Upgrade, Computer, databaseInit, Network, databasePull } = require("./databaseSchemas.js")
+var datasets, accountDataset: object, networkDataset: object, upgradeDataset: object, computerDataset: object;
 //console.log(Account, Upgrade, Computer, databaseInit)
 
 //const port = 1337
@@ -46,13 +47,18 @@ db.once('open', () => {
 });
 // end db establishment
 
-
+databaseHandler()
 
 // formerly the database block
-databaseInit();
-databasePull();
-
-
+async function databaseHandler() {
+	await databaseInit();
+	datasets = await databasePull(accountDataset, networkDataset, upgradeDataset, computerDataset);
+	accountDataset = datasets.acct;
+	networkDataset = datasets.netw;
+	upgradeDataset = datasets.upgr;
+	computerDataset = datasets.comp;
+	console.log("o" + accountDataset + networkDataset + upgradeDataset + computerDataset);
+}
 
 // begin server code
 const wss = new Websocket.Server({ port: port })
