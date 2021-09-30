@@ -9,7 +9,7 @@ const BSON = require('bson');
 // file imports
 const configFile = require("./config.json")
 const { Account, Upgrade, Computer, databaseInit, Network, databasePull } = require("./databaseSchemas.js")
-var datasets, accountDataset: Array<any>, networkDataset: object, upgradeDataset: object, computerDataset: object;
+var datasets, accountDataset: Array<any>, networkDataset: Array<any>, upgradeDataset: Array<any>, computerDataset: Array<any>;
 //console.log(Account, Upgrade, Computer, databaseInit)
 
 //const port = 1337
@@ -116,60 +116,35 @@ wss.on('connection', (ws: any) => {
 			} else if (message.event == "register") {
 				ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
 				// NEW DB SEARCH
+				var found = false;
+				console.log(accountDataset instanceof mongoose.Document);
 				accountDataset.find((o, i) => {
-					if (o.username == 'root') {
-						accountDataset[i].passwdHash = "shitters";
-						return true; // stop searching
-					}
-				});
-				console.log(accountDataset);
-				return;
-				// TODO CHANGE TO WORK WITH COPY IN MEMORY
-				Account.findOne({username:message.data.username}, (err: any, res: any) => { // user already exists
-					if (err) {console.log(err)}
-					if (res != null || res != undefined) { // whatever comes back IS NOT NULL OR UNDEFINED
+					if (o.username == message.data.username) {
+						found = true;
 						ws.authed = false;
 						ws.currentUser = "???";
 						ws.send('{"event":"auth", "ok":false}');
-						console.log("User " + message.data.username + " failed authentication");
+						console.log("User " + message.data.username + " failed authentication (attempted register with existing account " + message.data.username + ")");
+						//accountDataset[i].passwdHash = "shitters";
+						return true; // stop searching
 					}
-					return res;
 				});
-				
-				var acctId: String = uuid.v4();
-				var compId: String = uuid.v4();
+				if (!found) {
+					var registerAcct = new Account({id:new uuid.v4(), username:message.data.username, passwdHash:message.data.password, network:"some_random_id", homeComp:null, creationDate:Date.now()});
+					var registerComp = new Computer({id:new uuid.v4(), address:genNodeName(), balance:0, specs:{}, creationDate:Date.now()});
+					// TODO PLEASE CHECK THOSE IDs ARENT TAKEN?? OR NOT THATS COOL TOO
+					accountDataset.push(registerAcct);
+					computerDataset.push(registerComp);
+					console.log(accountDataset);
 
-				var nodeName = genNodeName();
-				var newAcct = new Account({id:acctId, username:message.data.username, passwdHash:message.data.password, network:"some_random_id", homeComp:compId, creationDate:Date.now()});
-				var newComp = new Computer({id:compId, address:nodeName, balance:0, specs:{}, creationDate:Date.now()});
-				// TODO CHANGE TO WORK WITH COPY IN MEMORY
-				Account.find({username:message.data.username}, (err: any, res: any) => {
-					if (err) { console.log(err) }
-					if (res[0] == null || res[0] == undefined) { // does it exist?
-						newAcct.save((err: any) => { // save to db
-							if (err) return console.error(err);
-							console.log("Created new user " + newAcct.username);
-						});
-					}
-				});
-				
-				// TODO CHANGE TO WORK WITH COPY IN MEMORY
-				Computer.find({address:nodeName}, (err: any, res: any) => {
-					if (err) { console.log(err); }
-					if (res[0] == null || res[0] == undefined) { // does it exist?
-						newComp.save((err: any) => { // save to db
-							if (err) return console.log(err);
-							console.log("Created new computer " + newComp.address);
-						});
-					}
-				});
-
-				ws.authed = true;
-				ws.currentUser = message.data.username;
-				ws.send('{"event":\"auth\", "ok":true}');
-				console.log("Created and successfully authenticated user " + message.data.username);
-			}
-			else {
+					ws.authed = true;
+					ws.currentUser = message.data.username;
+					ws.send('{"event":\"auth\", "ok":true}');
+					console.log("Created and successfully authenticated user " + message.data.username);
+				}
+			} else if (message.event == "save") {
+				accountDataset.save(); // FUCKING HELL
+			} else {
 				ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')
 			}
 		} else {
