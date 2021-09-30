@@ -9,7 +9,7 @@ const BSON = require('bson');
 // file imports
 const configFile = require("./config.json")
 const { Account, Upgrade, Computer, databaseInit, Network, databasePull } = require("./databaseSchemas.js")
-var datasets, accountDataset: object, networkDataset: object, upgradeDataset: object, computerDataset: object;
+var datasets, accountDataset: Array<any>, networkDataset: object, upgradeDataset: object, computerDataset: object;
 //console.log(Account, Upgrade, Computer, databaseInit)
 
 //const port = 1337
@@ -76,7 +76,7 @@ wss.on('connection', (ws: any) => {
 	clients.push(ws);
 	console.log("Active Connections: " + clients.length);
 
-	ws.on('message', (message: any) => {
+	ws.on('message', async (message: any) => {
 		console.log(ws.id + " (" + ws.currentUser + ")");
 		// in case someone doesnt send json
 		try {
@@ -107,9 +107,22 @@ wss.on('connection', (ws: any) => {
 					}
 					return res;
 				});
-			}
-			else if (message.event == "register") {
+			} else if (message.event == "disconnect" || message.event == "exit" || message.event == "logout") {
+				//
+				ws.authed = false;
+				await ws.send('{"event":"exit", "ok":true, "msg":"Logout successful"}')
+				ws.terminate();
+				return;
+			} else if (message.event == "register") {
 				ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
+				// NEW DB SEARCH
+				accountDataset.find((o, i) => {
+					if (o.username == 'root') {
+						accountDataset[i].passwdHash = "shitters";
+						return true; // stop searching
+					}
+				});
+				console.log(accountDataset);
 				return;
 				// TODO CHANGE TO WORK WITH COPY IN MEMORY
 				Account.findOne({username:message.data.username}, (err: any, res: any) => { // user already exists
@@ -166,7 +179,7 @@ wss.on('connection', (ws: any) => {
 				console.log(cmdParts);
 				// uhhh more shit i think
 			}
-			else if (message.event == "exit" || message.event == "shutdown" || message.event == "reset") {
+			else if (message.event == "exit" || message.event == "shutdown" || message.event == "reset" || message.event == "disconnect") {
 				ws.authed = false;
 				ws.send('{"event":"exit", "ok":true, "desc":"Logged out."}')
 				console.log("Unauthenticated user " + ws.currentUser);
