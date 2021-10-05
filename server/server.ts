@@ -28,6 +28,11 @@ function genNodeName() {
 	charList[Math.floor(Math.random() * charList.length)];
 	return totalNode;
 }
+function whatis (value: any) {
+	return Object.prototype.toString.call(value)
+	  .replace(/^\[object\s+([a-z]+)\]$/i, '$1')
+	  .toLowerCase();
+  }
 
 //var clients: Array<object> = [];
 var clients: Array<any> = [];
@@ -58,6 +63,7 @@ async function databaseHandler() {
 	upgradeDataset = datasets.upgr;
 	computerDataset = datasets.comp;
 	console.log("o" + accountDataset + networkDataset + upgradeDataset + computerDataset);
+	console.log(whatis(accountDataset));
 }
 
 // begin server code
@@ -130,8 +136,10 @@ wss.on('connection', (ws: any) => {
 					}
 				});
 				if (!found) {
-					var registerAcct = new Account({id:new uuid.v4(), username:message.data.username, passwdHash:message.data.password, network:"some_random_id", homeComp:null, creationDate:Date.now()});
-					var registerComp = new Computer({id:new uuid.v4(), address:genNodeName(), balance:0, specs:{}, creationDate:Date.now()});
+					var acctUUID = uuid.v4();
+					var compUUID = uuid.v4();
+					var registerAcct = new Account({id:acctUUID, username:message.data.username, passwdHash:message.data.password, network:"some_random_id", homeComp:3, creationDate:Date.now()});
+					var registerComp = new Computer({id:compUUID, address:genNodeName(), balance:0, specs:{}, creationDate:Date.now()});
 					// TODO PLEASE CHECK THOSE IDs ARENT TAKEN?? OR NOT THATS COOL TOO
 					accountDataset.push(registerAcct);
 					computerDataset.push(registerComp);
@@ -141,9 +149,13 @@ wss.on('connection', (ws: any) => {
 					ws.currentUser = message.data.username;
 					ws.send('{"event":\"auth\", "ok":true}');
 					console.log("Created and successfully authenticated user " + message.data.username);
+					//accountDataset[2].save();
+					// MAKE IT SO THE ABOVE LINE WORKS, FUCKER
+					registerAcct.save(); // FUCKING HELL
+					registerComp.save(); // FUCKING HELL
 				}
 			} else if (message.event == "save") {
-				accountDataset.save(); // FUCKING HELL
+				//
 			} else {
 				ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')
 			}
@@ -161,6 +173,7 @@ wss.on('connection', (ws: any) => {
 				ws.currentUser = "formerly " + ws.currentUser;
 			}
 		}
+		console.log("");
 	});
 
 	ws.on('close', (data: any) => {

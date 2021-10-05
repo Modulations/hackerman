@@ -45,6 +45,7 @@ const networkData = new Schema({
 	name: { type: String }
 });
 
+// these are all models
 const Account = mongoose.model('account', acctData);
 const Computer = mongoose.model('computer', compData);
 const Upgrade = mongoose.model('upgrade', upgData);

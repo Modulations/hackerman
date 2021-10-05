@@ -17,7 +17,9 @@ ws.on('open', async () => {
 
     await new Promise(resolve => setTimeout(resolve, 3000));
 
-    ws.send(buildEvent("save"))
+    //ws.send(buildEvent("save"))
+
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     ws.terminate();
 });
