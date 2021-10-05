@@ -149,10 +149,7 @@ wss.on('connection', (ws: any) => {
 					ws.currentUser = message.data.username;
 					ws.send('{"event":\"auth\", "ok":true}');
 					console.log("Created and successfully authenticated user " + message.data.username);
-					//accountDataset[2].save();
-					// MAKE IT SO THE ABOVE LINE WORKS, FUCKER
-					registerAcct.save(); // FUCKING HELL
-					registerComp.save(); // FUCKING HELL
+					accountDataset[2].save(); // actually sobbing rn
 				}
 			} else if (message.event == "save") {
 				//
