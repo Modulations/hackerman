@@ -1,5 +1,3 @@
-import { connect } from "http2";
-
 const Websocket = require('ws');
 const mongoose = require('mongoose');
 const uuid = require('uuid');
@@ -9,16 +7,15 @@ const BSON = require('bson');
 // file imports
 const configFile = require("./config.json")
 const { Account, Upgrade, Computer, databaseInit, Network, databasePull } = require("./databaseSchemas.js")
-var datasets, accountDataset: Array<any>, networkDataset: Array<any>, upgradeDataset: Array<any>, computerDataset: Array<any>;
+var datasets, accountDataset, networkDataset, upgradeDataset, computerDataset;
 //console.log(Account, Upgrade, Computer, databaseInit)
 
-//const port = 1337
 const port = 2332;
 
 function genNodeName() {
-	var greekChars: Array<String> = "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omikron pi rho sigma tau upsilon phi chi psi omega".split(" ");
-	var charList: Array<String> = "qwertyuiopasdfghjklzxcvbnm1234567890".split("");
-	var totalNode: String = greekChars[Math.floor(Math.random() * greekChars.length)] + "_" +
+	var greekChars = "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omikron pi rho sigma tau upsilon phi chi psi omega".split(" ");
+	var charList = "qwertyuiopasdfghjklzxcvbnm1234567890".split("");
+	var totalNode = greekChars[Math.floor(Math.random() * greekChars.length)] + "_" +
 	greekChars[Math.floor(Math.random() * greekChars.length)] + "_" + 
 	charList[Math.floor(Math.random() * charList.length)] +
 	charList[Math.floor(Math.random() * charList.length)] +
@@ -30,7 +27,7 @@ function genNodeName() {
 }
 
 //var clients: Array<object> = [];
-var clients: Array<any> = [];
+var clients = [];
 // change type later
 
 // start db
@@ -63,11 +60,11 @@ async function databaseHandler() {
 // begin server code
 const wss = new Websocket.Server({ port: port })
 
-wss.on('connection', (ws: any) => {
+wss.on('connection', (ws) => {
 	// TODO seperate thread pushing DB progress every 30 minutes?
 	console.log('\nConnection established\n');
 
-	var clientId: string = uuid.v4();
+	var clientId = uuid.v4();
 	ws.id = clientId;
 	ws.authed = false;
 	ws.currentUser = "???";
@@ -76,7 +73,7 @@ wss.on('connection', (ws: any) => {
 	clients.push(ws);
 	console.log("Active Connections: " + clients.length);
 
-	ws.on('message', async (message: any) => {
+	ws.on('message', async (message) => {
 		console.log(ws.id + " (" + ws.currentUser + ")");
 		// in case someone doesnt send json
 		try {
@@ -92,7 +89,7 @@ wss.on('connection', (ws: any) => {
 		if (ws.authed != true) {
 			if (message.event == "login") {
 				// TODO CHANGE TO WORK WITH COPY IN MEMORY
-				Account.findOne({username:message.data.username}, (err: any, res: any) => {
+				Account.findOne({username:message.data.username}, (err, res) => {
 					if (err) {console.log(err);}
 					if (res != null || res != undefined) {
 						ws.authed = true;
@@ -153,7 +150,7 @@ wss.on('connection', (ws: any) => {
 		} else {
 			if (message.event == "command") {
 				console.log("Received command: " + message.data.cmd)
-				var cmdParts: Array<String> = message.data.cmd.split(" ");
+				var cmdParts = message.data.cmd.split(" ");
 				console.log(cmdParts);
 				// uhhh more shit i think
 			}
@@ -167,11 +164,11 @@ wss.on('connection', (ws: any) => {
 		console.log("");
 	});
 
-	ws.on('close', (data: any) => {
+	ws.on('close', (data) => {
 		console.log(ws.id);
-		var targetIndex: number = -1;
-		for (var v: number = 0; v < clients.length; v++) {
-			var client: any = clients[v];
+		var targetIndex = -1;
+		for (var v = 0; v < clients.length; v++) {
+			var client = clients[v];
 
 			if (client.id === ws.id)
 				targetIndex = v;
@@ -195,7 +192,7 @@ wss.on('connection', (ws: any) => {
 	console.log("");
 });
 
-wss.on('error', (err : Error) => {
+wss.on('error', (err) => {
 	console.log("CRITICAL ERROR\n" + err.toString());
 })
 
