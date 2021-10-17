@@ -69,6 +69,8 @@ wss.on('connection', (ws) => {
 	ws.authed = false;
 	ws.currentUser = "???";
 	ws.currentComp = 0;
+	// TODO connection chain
+	ws.connectionChain = [];
 	console.log(ws.id);
 	clients.push(ws);
 	console.log("Active Connections: " + clients.length);
@@ -153,6 +155,7 @@ wss.on('connection', (ws) => {
 				var cmdParts = message.data.cmd.split(" ");
 				console.log(cmdParts);
 				// uhhh more shit i think
+				// command here [0] [args]
 			}
 			else if (message.event == "exit" || message.event == "shutdown" || message.event == "reset" || message.event == "disconnect") {
 				ws.authed = false;

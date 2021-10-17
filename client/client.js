@@ -7,17 +7,14 @@ function buildEvent(name, data={}) {
 }
 
 ws.on('open', async () => {
-    ws.send('{"event":"shit"}');
-    ws.send(buildEvent("register", {"username":"risk", "password":"aaaaaaa"}));
-    //ws.send(buildEvent("login", {"username":"root", "password":"a"}));
+    //ws.send('{"event":"shit"}');
+    //ws.send(buildEvent("register", {"username":"risk", "password":"aaaaaaa"}));
+    ws.send(buildEvent("login", {"username":"risk", "password":"aaaaaaa"}));
     
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    ws.send(buildEvent("disconnect"))
-
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    //ws.send(buildEvent("save"))
+    //ws.send(buildEvent("disconnect"))
+    ws.send(buildEvent("command", {"cmd":"connect localhost"}))
 
     await new Promise(resolve => setTimeout(resolve, 3000));
 
