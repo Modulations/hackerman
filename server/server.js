@@ -6,7 +6,7 @@ const BSON = require('bson');
 
 //
 var workerFarm = require('worker-farm');
-var workers    = workerFarm(require.resolve('./commands/ls.js'));
+var workers    = workerFarm(require.resolve('./commands/commandHandler.js'));
 var ret        = 0;
 
 // file imports
@@ -55,6 +55,7 @@ databaseHandler()
 async function databaseHandler() {
 	await databaseInit();
 	datasets = await databasePull(accountDataset, networkDataset, upgradeDataset, computerDataset);
+	// there is NO REASON why you shouldn't've kept datasets. tearing it apart is kinda a shit idea. fix it whenever
 	accountDataset = datasets.acct;
 	networkDataset = datasets.netw;
 	upgradeDataset = datasets.upgr;
@@ -149,8 +150,6 @@ wss.on('connection', (ws) => {
 					console.log("Created and successfully authenticated user " + message.data.username);
 					accountDataset[2].save(); // actually sobbing rn
 				}
-			} else if (message.event == "save") {
-				//
 			} else {
 				ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')
 			}
@@ -158,18 +157,11 @@ wss.on('connection', (ws) => {
 			if (message.event == "command") {
 				console.log("Received command: " + message.data.cmd)
 				var cmdParts = message.data.cmd.split(" ");
+				// SANITIZE
 				console.log(cmdParts);
 				// uhhh more shit i think
-				// command here [0] [args]
-				if (cmdParts[0] == "ls") {
-					for (var i = 0; i < 10; i++) {
-						workers('worker #' + i, function (err, out) {
-							console.log(out)
-							if (++ret == 10)
-								workerFarm.end(workers)
-						})
-					}
-				}
+				workers(cmdParts, accountDataset, networkDataset, upgradeDataset, computerDataset, ws, (err, out) => {console.log(out)});
+				//workerFarm.end(workers);
 			}
 			else if (message.event == "exit" || message.event == "shutdown" || message.event == "reset" || message.event == "disconnect") {
 				ws.authed = false;
@@ -211,6 +203,7 @@ wss.on('connection', (ws) => {
 
 wss.on('error', (err) => {
 	console.log("CRITICAL ERROR\n" + err.toString());
+	workerFarm.end(workers);
 })
 
 console.log(`Server listening on port ${port}`)
