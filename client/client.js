@@ -14,7 +14,7 @@ ws.on('open', async () => {
     await new Promise(resolve => setTimeout(resolve, 5000));
 
     //ws.send(buildEvent("disconnect"))
-    ws.send(buildEvent("command", {"cmd":"connect localhost"}))
+    ws.send(buildEvent("command", {"cmd":"ls"}))
 
     await new Promise(resolve => setTimeout(resolve, 3000));
 

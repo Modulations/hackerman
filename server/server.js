@@ -4,6 +4,11 @@ const uuid = require('uuid');
 const db = mongoose.connection;
 const BSON = require('bson');
 
+//
+var workerFarm = require('worker-farm');
+var workers    = workerFarm(require.resolve('./commands/ls.js'));
+var ret        = 0;
+
 // file imports
 const configFile = require("./config.json")
 const { Account, Upgrade, Computer, databaseInit, Network, databasePull } = require("./databaseSchemas.js")
@@ -156,6 +161,15 @@ wss.on('connection', (ws) => {
 				console.log(cmdParts);
 				// uhhh more shit i think
 				// command here [0] [args]
+				if (cmdParts[0] == "ls") {
+					for (var i = 0; i < 10; i++) {
+						workers('worker #' + i, function (err, out) {
+							console.log(out)
+							if (++ret == 10)
+								workerFarm.end(workers)
+						})
+					}
+				}
 			}
 			else if (message.event == "exit" || message.event == "shutdown" || message.event == "reset" || message.event == "disconnect") {
 				ws.authed = false;

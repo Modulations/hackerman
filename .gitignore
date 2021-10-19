@@ -3,6 +3,7 @@
 
 # mine
 server/config.json
+old/
 
 # User-specific files
 *.suo
