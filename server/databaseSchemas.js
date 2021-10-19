@@ -110,16 +110,17 @@ async function databaseInit() {
 	})
 }
 
-async function databasePull(acctData, netwData, upgrData, compData) {
-	acctData = await Account.find({})
-	netwData = await Network.find({})
-	upgrData = await Upgrade.find({})
-	compData = await Computer.find({})
-	if (acctData == undefined) { console.log("acct empty") } else { console.log("acct success") }
-	if (netwData == undefined) { console.log("netw empty") } else { console.log("netw success") }
-	if (upgrData == undefined) { console.log("upgr empty") } else { console.log("upgr success") }
-	if (compData == undefined) { console.log("comp empty") } else { console.log("comp success") }
-	return { "acct":acctData, "netw":netwData, "upgr":upgrData, "comp":compData };
+async function databasePull(datasets) {
+	datasets.acct = await Account.find({})
+	datasets.netw = await Network.find({})
+	datasets.upgr = await Upgrade.find({})
+	datasets.comp = await Computer.find({})
+	if (datasets.acct == undefined) { console.log("acct empty") } else { console.log("acct success") }
+	if (datasets.netw == undefined) { console.log("netw empty") } else { console.log("netw success") }
+	if (datasets.upgr == undefined) { console.log("upgr empty") } else { console.log("upgr success") }
+	if (datasets.comp == undefined) { console.log("comp empty") } else { console.log("comp success") }
+	// this can 100% be cleaned up
+	return datasets;
 }
 
 //  | | | | | | | \\

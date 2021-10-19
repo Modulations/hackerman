@@ -4,16 +4,16 @@ const uuid = require('uuid');
 const db = mongoose.connection;
 const BSON = require('bson');
 
-//
+// worker setup (WIP)
+// TODO proper workers
 var workerFarm = require('worker-farm');
-var workers    = workerFarm(require.resolve('./commands/commandHandler.js'));
-var ret        = 0;
+var workers = workerFarm(require.resolve('./commands/commandHandler.js'));
+var ret = 0;
 
 // file imports
 const configFile = require("./config.json")
 const { Account, Upgrade, Computer, databaseInit, Network, databasePull } = require("./databaseSchemas.js")
-var datasets, accountDataset, networkDataset, upgradeDataset, computerDataset;
-//console.log(Account, Upgrade, Computer, databaseInit)
+var datasets = {};
 
 const port = 2332;
 
@@ -31,13 +31,11 @@ function genNodeName() {
 	return totalNode;
 }
 
-//var clients: Array<object> = [];
+// list of clients! dont touch.
 var clients = [];
-// change type later
 
 // start db
 const connectString = "mongodb+srv://" + configFile.username + ":" + configFile.password + "@" + configFile.hostname + "/hackerman"
-//const connectString = 'mongodb://localhost/hackerman'
 mongoose.connect(connectString, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
@@ -49,25 +47,19 @@ db.once('open', () => {
 });
 // end db establishment
 
-databaseHandler()
-
-// formerly the database block
+// VERY IMPORTANT DO NOT TOUCH
 async function databaseHandler() {
 	await databaseInit();
-	datasets = await databasePull(accountDataset, networkDataset, upgradeDataset, computerDataset);
-	// there is NO REASON why you shouldn't've kept datasets. tearing it apart is kinda a shit idea. fix it whenever
-	accountDataset = datasets.acct;
-	networkDataset = datasets.netw;
-	upgradeDataset = datasets.upgr;
-	computerDataset = datasets.comp;
-	//console.log("o" + accountDataset + networkDataset + upgradeDataset + computerDataset);
+	datasets = await databasePull(datasets);
 }
+databaseHandler()
+// DO NOT TOUCH ABOVE CODE
 
 // begin server code
 const wss = new Websocket.Server({ port: port })
 
 wss.on('connection', (ws) => {
-	// TODO seperate thread pushing DB progress every 30 minutes?
+	// TODO seperate worker dedicated to pushing DB progress every 30 minutes?
 	console.log('\nConnection established\n');
 
 	var clientId = uuid.v4();
@@ -75,7 +67,7 @@ wss.on('connection', (ws) => {
 	ws.authed = false;
 	ws.currentUser = "???";
 	ws.currentComp = 0;
-	// TODO connection chain
+	// TODO connection chain implementation
 	ws.connectionChain = [];
 	console.log(ws.id);
 	clients.push(ws);
@@ -113,7 +105,7 @@ wss.on('connection', (ws) => {
 					return res;
 				});
 			} else if (message.event == "disconnect" || message.event == "exit" || message.event == "logout") {
-				//
+				// TODO clean this up
 				ws.authed = false;
 				await ws.send('{"event":"exit", "ok":true, "msg":"Logout successful"}')
 				ws.terminate();
@@ -122,15 +114,13 @@ wss.on('connection', (ws) => {
 				ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
 				// NEW DB SEARCH
 				var found = false;
-				console.log(accountDataset instanceof mongoose.Document);
-				accountDataset.find((o, i) => {
+				datasets.acct.find((o, i) => {
 					if (o.username == message.data.username) {
 						found = true;
 						ws.authed = false;
 						ws.currentUser = "???";
 						ws.send('{"event":"auth", "ok":false}');
 						console.log("User " + message.data.username + " failed authentication (attempted register with existing account " + message.data.username + ")");
-						//accountDataset[i].passwdHash = "shitters";
 						return true; // stop searching
 					}
 				});
@@ -140,15 +130,14 @@ wss.on('connection', (ws) => {
 					var registerAcct = new Account({id:acctUUID, username:message.data.username, passwdHash:message.data.password, network:"some_random_id", homeComp:3, creationDate:Date.now()});
 					var registerComp = new Computer({id:compUUID, address:genNodeName(), balance:0, specs:{}, creationDate:Date.now()});
 					// TODO PLEASE CHECK THOSE IDs ARENT TAKEN?? OR NOT THATS COOL TOO
-					accountDataset.push(registerAcct);
-					computerDataset.push(registerComp);
-					console.log(accountDataset);
+					datasets.acct.push(registerAcct);
+					datasets.comp.push(registerComp);
 
 					ws.authed = true;
 					ws.currentUser = message.data.username;
 					ws.send('{"event":\"auth\", "ok":true}');
 					console.log("Created and successfully authenticated user " + message.data.username);
-					accountDataset[2].save(); // actually sobbing rn
+					datasets.acct[2].save(); // actually sobbing rn
 				}
 			} else {
 				ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')
@@ -157,10 +146,10 @@ wss.on('connection', (ws) => {
 			if (message.event == "command") {
 				console.log("Received command: " + message.data.cmd)
 				var cmdParts = message.data.cmd.split(" ");
-				// SANITIZE
+				// TODO SANITIZE
 				console.log(cmdParts);
 				// uhhh more shit i think
-				workers(cmdParts, accountDataset, networkDataset, upgradeDataset, computerDataset, ws, (err, out) => {console.log(out)});
+				workers(cmdParts, datasets, ws, (err, out) => {console.log(out)});
 				//workerFarm.end(workers);
 			}
 			else if (message.event == "exit" || message.event == "shutdown" || message.event == "reset" || message.event == "disconnect") {
@@ -196,8 +185,6 @@ wss.on('connection', (ws) => {
 		}
 		console.log("Active Connections: " + clients.length);
 	});
-  
-	//ws.send('{"event":"test"}');
 	console.log("");
 });
 
