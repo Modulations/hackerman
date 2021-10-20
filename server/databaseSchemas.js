@@ -17,7 +17,7 @@ const acctData = new Schema({
 	network: String,
 	homeComp: String,
 	creationDate: { type: Date, default:Date.now() }
-});
+}, { minimize: false });
 
 const compData = new Schema({
 	id: {type:String, default:uuid.v4()},
@@ -29,7 +29,7 @@ const compData = new Schema({
 	creationDate: {type: Date, default:Date.now()}
 }, { minimize: false }); // lets me save empty obj to db :)
 
-const upgData = new Schema({
+const upgrData = new Schema({
 	name: {type:String, default:"hollow_soft_v1"},
 	type: {type:String, default:"software"},
 	versionFrom: {type:Number, default:0.1},
@@ -42,38 +42,36 @@ const upgData = new Schema({
 	location: {type:String, default:"DEPRECATED"}, // TODO likely useless
 	sn: {type:String, default:uuid.v4()},
 	creationDate: { type: Date, default:Date.now() }
-});
+}, { minimize: false });
 
-const networkData = new Schema({
+const netwData = new Schema({
 	id: {type:String, default:uuid.v4()},
 	name: String,
 	kernel: String,
-	compList: [String],
+	compList: [],
 	creationDate: { type: Date, default:Date.now() }
-});
+}, { minimize: false });
 
 // these are all models
 const Account = mongoose.model('account', acctData);
 const Computer = mongoose.model('computer', compData);
-const Upgrade = mongoose.model('upgrade', upgData);
-const Network = mongoose.model('network', upgData);
+const Upgrade = mongoose.model('upgrade', upgrData);
+const Network = mongoose.model('network', netwData);
 
-var acctId = uuid.v4();
-var compId = uuid.v4();
-var upgrId = uuid.v4();
-var netwId = uuid.v4();
+compId = uuid.v4();
+netwId = uuid.v4();
 
-var newAcct = new Account({id:acctId, username:"root", passwdHash:"testHASH", network:"some_random_id", homeComp:compId, creationDate:Date.now()});
-var newComp = new Computer({id:compId, address:"alpha_psi_w39xcd", balance:159178420, specs:{}, creationDate:Date.now()});
-var newUpg  = new Upgrade({name:"generic_upgrade", type:"unknown", versionFrom:"0", versionTo:"100", tier:0, loaded:false, description:"pog", index:0, location:"root", sn:upgrId, creationDate:Date.now()});
-var newNetw = new Network({name:"Proving Grounds", compList:[0], creationDate:Date.now()});
+var newAcct = new Account({username:"root", passwdHash:"deadbeef", network:"some_random_id", homeComp:compId});
+var newComp = new Computer({id:compId, address:"alpha_psi_w39xcd", balance:159178420, creationDate:new Date(0)});
+var newUpg  = new Upgrade({});
+var newNetw = new Network({id:netwId, name:"Proving Grounds", compList:[[compId]]});
 
 async function databaseInit() {
 	// THE FOLLOWING CODE BLOCKS:
 	// CHECK IF AN ACCOUNT/COMPUTER WITH THE SAME ID ALREADY EXISTS IN THE DB
 	// IF NOT, WRITE TO DB.
 	// IF SO, DO NOTHING.
-	await Account.find({username:"root"}, (err, res) => {
+	await Account.find({}, (err, res) => {
 		if (err) { console.log(err); }
 		if (res[0] == null || res[0] == undefined) { // does it exist?
 			newAcct.save((err) => { // save to db
@@ -81,10 +79,9 @@ async function databaseInit() {
 				console.log("Created new user " + newAcct.username);
 			});
 		}
-		//console.log("User " + newAcct.username + " already exists.");
 	});
 
-	await Computer.find({address:"alpha_psi_w39xcd"}, (err, res) => {
+	await Computer.find({}, (err, res) => {
 		if (err) { console.log(err); }
 		if (res[0] == null || res[0] == undefined) { // does it exist?
 			newComp.save((err) => { // save to db
@@ -92,10 +89,9 @@ async function databaseInit() {
 				console.log("Created new computer " + newComp.address);
 			});
 		}
-		//console.log("Computer " + newComp.address + " already exists.");
 	});
 
-	await Upgrade.find({name:"generic_upgrade"}, (err, res) => {
+	await Upgrade.find({}, (err, res) => {
 		if (err) { console.log(err); }
 		if (res[0] == null || res[0] == undefined) { // does it exist?
 			newUpg.save((err) => { // save to db
@@ -103,7 +99,6 @@ async function databaseInit() {
 				console.log("Created new upgrade " + newUpg.name);
 			});
 		}
-		//console.log("Upgrade " + newUpg.name + " already exists.");
 	});
 
 	await Network.find({name:"Proving Grounds"}, (err, result) => {
