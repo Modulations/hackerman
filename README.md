@@ -1,6 +1,7 @@
 # Hackerman
 
 hmm today i will commit to master
+Automatic Terminal Split: Ctrl + Shift + P --> Automatic Tasks --> Allow
 
 ---
 

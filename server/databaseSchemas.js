@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const uuid = require('uuid');
+// TODO make sure this isn't dumb
+const common = require("./common.js");
 
 //  | | | | | | | | \\
 // start DB testing \\
@@ -9,40 +11,45 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
 
 const acctData = new Schema({
-	id: { type: String },
-	username: { type: String },
-	passwdHash: { type: String },
-	network: { type: String },
-	homeComp: { type: String },
-	creationDate: { type: Date }
+	id: {type:String, default:uuid.v4()},
+	username: String,
+	passwdHash: String,
+	network: String,
+	homeComp: String,
+	creationDate: { type: Date, default:Date.now() }
 });
 
 const compData = new Schema({
-	id: { type: String },
-	address: { type: String },
-	balance: { type: Number },
-	specs: { type: Object },
-	authUsers: { type: Array },
-	breached: { type: Boolean },
-	creationDate: { type: Date }
-});
+	id: {type:String, default:uuid.v4()},
+	address: {type:String, default:common.genNodeName()},
+	balance: {type: Number, default: 0},
+	specs: {type:Object, default:{cpu:{name:"Shitter CPU", clockSpeed:2.4}, memory:{}, storage:256}},
+	authUsers: {type: Object, default:{all:["welles"], fs:[], shell:[], memory:[]}},
+	ports: {type:Object, default:{}},
+	creationDate: {type: Date, default:Date.now()}
+}, { minimize: false }); // lets me save empty obj to db :)
 
 const upgData = new Schema({
-	name: { type: String },
-	type: { type: String },
-	versionFrom: { type: String },
-	versionTo: { type: String },
-	tier: { type: Number },
-	loaded: { type: Boolean },
-	description: { type: String },
-	index: { type: Number },
-	location: { type: String },
-	sn: { type: String },
-	creationDate: { type: Date }
+	name: {type:String, default:"hollow_soft_v1"},
+	type: {type:String, default:"software"},
+	versionFrom: {type:Number, default:0.1},
+	versionTo: {type:Number, default:0.1},
+	components: {type:Object, default:{}},
+	tier: {type:Number, default:0},
+	loaded: {type:Boolean, default:false},
+	description: {type:String, default:"a hollow (?) upgrade."},
+	index: {type:Number, default:-1}, // TODO may be useless
+	location: {type:String, default:"DEPRECATED"}, // TODO likely useless
+	sn: {type:String, default:uuid.v4()},
+	creationDate: { type: Date, default:Date.now() }
 });
 
 const networkData = new Schema({
-	name: { type: String }
+	id: {type:String, default:uuid.v4()},
+	name: String,
+	kernel: String,
+	compList: [String],
+	creationDate: { type: Date, default:Date.now() }
 });
 
 // these are all models
@@ -59,7 +66,7 @@ var netwId = uuid.v4();
 var newAcct = new Account({id:acctId, username:"root", passwdHash:"testHASH", network:"some_random_id", homeComp:compId, creationDate:Date.now()});
 var newComp = new Computer({id:compId, address:"alpha_psi_w39xcd", balance:159178420, specs:{}, creationDate:Date.now()});
 var newUpg  = new Upgrade({name:"generic_upgrade", type:"unknown", versionFrom:"0", versionTo:"100", tier:0, loaded:false, description:"pog", index:0, location:"root", sn:upgrId, creationDate:Date.now()});
-var newNetw = new Network({name:"eth0"});
+var newNetw = new Network({name:"Proving Grounds", compList:[0], creationDate:Date.now()});
 
 async function databaseInit() {
 	// THE FOLLOWING CODE BLOCKS:
@@ -99,7 +106,7 @@ async function databaseInit() {
 		//console.log("Upgrade " + newUpg.name + " already exists.");
 	});
 
-	await Network.find({name:"eth0"}, (err, result) => {
+	await Network.find({name:"Proving Grounds"}, (err, result) => {
 		if (err) { console.log(err); }
 		if (result[0] == null || result[0] == undefined) { // does it exist?
 			newNetw.save((err) => { // save to db

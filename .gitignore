@@ -4,6 +4,7 @@
 # mine
 server/config.json
 old/
+.vscode/
 
 # User-specific files
 *.suo

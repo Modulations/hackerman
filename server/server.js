@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const uuid = require('uuid');
 const db = mongoose.connection;
 const BSON = require('bson');
+const common = require('./common.js');
 
 // worker setup (WIP)
 // TODO proper workers
@@ -16,20 +17,6 @@ const { Account, Upgrade, Computer, databaseInit, Network, databasePull } = requ
 var datasets = {};
 
 const port = 2332;
-
-function genNodeName() {
-	var greekChars = "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omikron pi rho sigma tau upsilon phi chi psi omega".split(" ");
-	var charList = "qwertyuiopasdfghjklzxcvbnm1234567890".split("");
-	var totalNode = greekChars[Math.floor(Math.random() * greekChars.length)] + "_" +
-	greekChars[Math.floor(Math.random() * greekChars.length)] + "_" + 
-	charList[Math.floor(Math.random() * charList.length)] +
-	charList[Math.floor(Math.random() * charList.length)] +
-	charList[Math.floor(Math.random() * charList.length)] +
-	charList[Math.floor(Math.random() * charList.length)] +
-	charList[Math.floor(Math.random() * charList.length)] +
-	charList[Math.floor(Math.random() * charList.length)];
-	return totalNode;
-}
 
 // list of clients! dont touch.
 var clients = [];
@@ -128,7 +115,7 @@ wss.on('connection', (ws) => {
 					var acctUUID = uuid.v4();
 					var compUUID = uuid.v4();
 					var registerAcct = new Account({id:acctUUID, username:message.data.username, passwdHash:message.data.password, network:"some_random_id", homeComp:3, creationDate:Date.now()});
-					var registerComp = new Computer({id:compUUID, address:genNodeName(), balance:0, specs:{}, creationDate:Date.now()});
+					var registerComp = new Computer({id:compUUID, address:common.genNodeName(), balance:0, specs:{}, creationDate:Date.now()});
 					// TODO PLEASE CHECK THOSE IDs ARENT TAKEN?? OR NOT THATS COOL TOO
 					datasets.acct.push(registerAcct);
 					datasets.comp.push(registerComp);
