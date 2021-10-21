@@ -136,7 +136,7 @@ wss.on('connection', (ws) => {
 				// TODO SANITIZE
 				console.log(cmdParts);
 				// uhhh more shit i think
-				workers(cmdParts, datasets, ws, (err, out) => {console.log(out)});
+				workers(cmdParts, datasets, ws, (err, out) => {ws.send(out)});
 				//workerFarm.end(workers);
 			}
 			else if (message.event == "exit" || message.event == "shutdown" || message.event == "reset" || message.event == "disconnect") {

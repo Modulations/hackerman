@@ -1,3 +1,5 @@
+// TODO helper functions, make packet?
+
 function genNodeName() {
 	var greekChars = "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega".split(" ");
 	var charList = "qwertyuiopasdfghjklzxcvbnm1234567890".split("");

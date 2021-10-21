@@ -13,30 +13,17 @@ ws.on('open', async () => {
     //ws.send(buildEvent("disconnect"))
     ws.send(buildEvent("login", {"username":"risk", "password":"aaaaaaa"}));
     
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     //ws.send(buildEvent("disconnect"))
-    ws.send(buildEvent("command", {"cmd":"ls"}))/*
     ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))
-    ws.send(buildEvent("command", {"cmd":"ls"}))*/
 
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    ws.send(buildEvent("command", {"cmd":"test"}))
+    ws.send(buildEvent("command", {"cmd":"whoami"}))
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     ws.terminate();
 });
