@@ -14,8 +14,12 @@ ws.on('open', async () => {
     ws.send(buildEvent("login", {"username":"risk", "password":"aaaaaaa"}));
     
     await new Promise(resolve => setTimeout(resolve, 2000));
+    ws.send(buildEvent("disconnect"))
 
-    //ws.send(buildEvent("disconnect"))
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    ws.send(buildEvent("login", {"username":"root", "password":"deadbeef"}));
+    
+    await new Promise(resolve => setTimeout(resolve, 2000));
     ws.send(buildEvent("command", {"cmd":"ls"}))
 
     await new Promise(resolve => setTimeout(resolve, 2000));

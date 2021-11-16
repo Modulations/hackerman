@@ -182,11 +182,11 @@ wss.on('error', (err) => {
 	workerFarm.end(workers);
 })
 
-console.log(`Server listening on port ${port}`)
+console.log(`Server listening on port ${port}`);
 
-var gameLoopID = setInterval(gameLoop, 10000);
+var gameLoopID = setInterval(gameLoop, 5000);
 
 function gameLoop() {
 	// shitters
-	console.log("shitFuckers")
+	//console.log("shitFuckers")
 }
