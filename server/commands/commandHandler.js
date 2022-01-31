@@ -1,4 +1,5 @@
-const ls = require("./ls.js");
+const lsCmd = require("./ls.js");
+const connectCmd = require("./connect.js");
 
 module.exports = (cmdParts, datasets, ws, callbackFunc) => {
     console.log('PID ' + process.pid + "\nHandling command: " + cmdParts.join(" ") + "");
@@ -8,8 +9,12 @@ module.exports = (cmdParts, datasets, ws, callbackFunc) => {
             callbackFunc(null, "Failure");
             break;
         case "ls":
-            ls();
-            callbackFunc(null, "shitter")
+            lsCmd();
+            callbackFunc(null, "Listing...")
+            break;
+        case "connect":
+            connectCmd();
+            callbackFunc(null, "Connecting...")
             break;
     }
 }
