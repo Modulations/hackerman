@@ -61,6 +61,7 @@ wss.on('connection', (ws) => {
 	console.log("Active Connections: " + clients.length);
 
 	ws.on('message', async (message) => {
+		console.time(ws.id);
 		console.log(ws.id + " (" + ws.currentUser + ")");
 		// in case someone doesnt send json
 		try {
@@ -146,6 +147,7 @@ wss.on('connection', (ws) => {
 				ws.currentUser = "formerly " + ws.currentUser;
 			}
 		}
+		console.timeEnd(ws.id);
 		console.log("");
 	});
 
@@ -180,4 +182,11 @@ wss.on('error', (err) => {
 	workerFarm.end(workers);
 })
 
-console.log(`Server listening on port ${port}`)
+console.log(`Server listening on port ${port}`);
+
+var gameLoopID = setInterval(gameLoop, 5000);
+
+function gameLoop() {
+	// shitters
+	//console.log("shitFuckers")
+}
