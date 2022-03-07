@@ -20,8 +20,8 @@
 
 <span>Test words!</span>
 <table></table>
-<input id="eventType" type="text" placeholder="event type"/>
-<input id="userDataInput" type="text" placeholder="data" class="search" onkeydown="search(this)"/>
+<input id="eventType" type="text" placeholder="event type" value="login"/>
+<input id="userDataInput" type="text" placeholder="data" class="search" onkeydown="search(this)" value='{"username":"risk", "password":"a"}'/>
 
 <script>
     var msgEvent = document.getElementById("eventType");
@@ -31,9 +31,14 @@
         if(event.key === 'Enter') {
             if (msgEvent.value != null) { eventType = msgEvent.value; } else { eventType = "invalid"; }
 
-            var msg = buildMsg(ele.value, eventType);
+            var dataVal = ele.value;
+            if (IsJsonString(ele.value)) {
+                dataVal = JSON.parse(ele.value);
+            }
+            var msg = buildMsg(dataVal, eventType);
+            console.log(msg);
 
-            ws.send(msg);
+            ws.send(JSON.stringify(msg));
             
             console.log("Sent: " + JSON.stringify(msg));
             ele.value = "";
@@ -45,5 +50,13 @@
     }
     function buildEvent(eventType, data={}) {
         return JSON.stringify({"event":eventType, "data":data})
+    }
+    function IsJsonString(str) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        return true;
     }
 </script>
