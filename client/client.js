@@ -2,8 +2,8 @@ const WebSocket = require("ws");
 
 const ws = new WebSocket('ws://localhost:2332', {perMessageDeflate:false});
 
-function buildEvent(name, data={}) {
-    return JSON.stringify({"event":name, "data":data})
+function buildEvent(eventType, data={}) {
+    return JSON.stringify({"event":eventType, "data":data})
 }
 
 ws.on('open', async () => {

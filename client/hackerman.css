@@ -1,0 +1,94 @@
+@font-face {
+	font-family: 'white_rabbitregular';
+	src: url('assets/whiterabbit-webfont.woff2') format('woff2'),
+		 url('assets/whiterabbit-webfont.woff') format('woff'),
+		 url('assets/whiterabbit-webfont.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+a[href],
+a[href]:active,
+a[href]:visited,
+a[href]:link {
+	color:#FFFFFF;
+}
+
+div.chat {
+	border-top:1px dashed #FFFFFF;
+	border-bottom:1px dashed #FFFFFF;
+	padding-top:1em;
+	padding-bottom:1em;
+}
+div.script {
+	padding-top:0;
+	padding-bottom:0;
+}
+img {
+	border:2px solid #FFFFFF;
+}
+
+body {
+	background-color:#101215;
+	word-wrap:break-word;
+	white-space:pre-wrap;
+	color:#FFFFFF;
+	font-family:white_rabbitregular,monospace;
+	line-height:1.1;
+	/* background-image: repeating-linear-gradient(#1c1c1c, #1c1c1c 2px, #262626 2px, #262626 4px); */ /* superbright */
+	/* background-image: repeating-linear-gradient(#0e0e0e, #0e0e0e 2px, #101215 2px, #101215 4px); */ /* hackmud colors */
+	background-image: repeating-linear-gradient(#141414, #141414 2px, #181818 2px, #181818 4px); /* toned down */
+	background-size:100% 4px;
+}
+table,
+tr,
+td {
+	border-collapse:collapse;
+}
+td {
+	padding:1em;
+	max-width:500px;
+	word-wrap: break-word;
+	white-space:pre-wrap;
+	color:#FFFFFF;
+	font-family:white_rabbitregular,monospace;
+	line-height:1.1;
+	vertical-align:top;
+	border:1px solid #FFFFFF;
+	border-collapse:collapse;
+}
+table.noborder td,table.noborder th,td.noborder {
+	border-width:0;
+}
+table.wide td {
+	max-width:none;
+}
+td.topborder {
+	border-width:0;
+	border-top:1px dashed #FFFFFF;
+}
+td.solidtopborder {
+	border-width:0;
+	border-top:1px solid #FFFFFF;
+}
+td.dashed {
+	border-left:1px dashed #FFFFFF;
+	border-right:1px dashed #FFFFFF;
+	text-align:center;
+}
+.good_end {
+	background-color:rgba(255,0,255,0.1);
+}
+.special_end {
+	background-color:rgba(0,255,0,0.2);
+}
+.dead_end {
+	background-color:rgba(0,255,255,.1);
+}
+.bad_end {
+	background-color:rgba(255,0,0,.1);
+}
+.selected {
+	border:5px solid yellow;
+	padding:0 1em 1em 1em;
+}
