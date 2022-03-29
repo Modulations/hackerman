@@ -18,34 +18,45 @@
     };
 </script>
 
-<span>Test words!</span>
+<span>Valid event types:</span>
+<span>login, command</span>
+<span>disconnect, logout, exit, shutdown, reset</span>
 <table></table>
-<input id="eventType" type="text" placeholder="event type" value="login"/>
-<input id="userDataInput" type="text" placeholder="data" class="search" onkeydown="search(this)" value='{"username":"risk", "password":"a"}'/>
+<span>EVENT TYPE</span><br><input id="eventType" type="text" placeholder="event type" value="login"/>
+<br><span>RAW DATA</span><br><input id="userRawDataInput" type="text" placeholder="raw data" class="search" onkeydown="search(this)" value='{"username":"risk", "password":"a"}'/>
+<br><span>DATA</span><br><input id="userDataInput" type="text" placeholder="data" class="search" onkeydown="search(this, false)"/>
 
 <script>
     var msgEvent = document.getElementById("eventType");
-    var input = document.getElementById("userDataInput");
+    var input = document.getElementById("userRawDataInput");
     var eventType = "invalid";
-    function search(ele) {
+    function search(ele, raw=true) {
         if(event.key === 'Enter') {
             if (msgEvent.value != null) { eventType = msgEvent.value; } else { eventType = "invalid"; }
 
             var dataVal = ele.value;
-            if (IsJsonString(ele.value)) {
-                dataVal = JSON.parse(ele.value);
+            var msg;
+            if (raw) {
+                if (IsJsonString(ele.value)) {
+                    dataVal = JSON.parse(ele.value);
+                }
+                var msg = buildMsg(dataVal, eventType);
+                console.log(msg);
+            } else {
+                var msg = buildCleanMsg(dataVal, eventType);
             }
-            var msg = buildMsg(dataVal, eventType);
-            console.log(msg);
-
-            ws.send(JSON.stringify(msg));
             
+            ws.send(JSON.stringify(msg));
             console.log("Sent: " + JSON.stringify(msg));
             ele.value = "";
         }
     }
     function buildMsg(data = {"data":false}, type = "invalid") {
         var assembly = {"event":type, "data":data};
+        return assembly;
+    }
+    function buildCleanMsg(data = {"cmd":false}, type = "invalid") {
+        var assembly = {"event":type, "data":{"cmd":data}};
         return assembly;
     }
     function buildEvent(eventType, data={}) {
