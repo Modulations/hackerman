@@ -1,115 +1,40 @@
-const mongoose = require('mongoose');
-const uuid = require('uuid');
-// TODO make sure this isn't dumb
-const common = require("./common.js");
+const
+	mongoose = require('mongoose'),
+	uuid = require('uuid');
+
+const {
+	computerService: computerService,
+	accountService: accountService,
+	networkService: networkService,
+	upgradeService: upgradeService,
+	playerService: playerService
+} = require("./services");
+
+const {
+	ComputerModel: Computer,
+	AccountModel: Account,
+	NetworkModel: Network,
+	UpgradeModel: Upgrade,
+	PlayerModel: Player
+} = require("./models")
 
 //  | | | | | | | | \\
 // start DB testing \\
 //  | | | | | | | | \\
-
-const Schema = mongoose.Schema;
-const ObjectId = Schema.ObjectId;
-
-const acctData = new Schema({
-	id: {type:String, default:uuid.v4()},
-	username: String,
-	passwdHash: String,
-	network: String,
-	homeComp: String,
-	creationDate: { type: Date, default:Date.now() }
-}, { minimize: false });
-
-const compData = new Schema({
-	id: {type:String, default:uuid.v4()},
-	address: {type:String, default:common.genNodeName()},
-	balance: {type: Number, default: 0},
-	specs: {type:Object, default:{cpu:{name:"Shitter CPU", clockSpeed:2.4}, memory:{}, storage:256}},
-	authUsers: {type: Object, default:{all:["welles"], fs:[], shell:[], memory:[]}},
-	ports: {type:Object, default:{}},
-	creationDate: {type: Date, default:Date.now()}
-}, { minimize: false }); // lets me save empty obj to db :)
-
-const upgrData = new Schema({
-	name: {type:String, default:"hollow_soft_v1"},
-	type: {type:String, default:"software"},
-	versionFrom: {type:Number, default:0.1},
-	versionTo: {type:Number, default:0.1},
-	components: {type:Object, default:{}},
-	tier: {type:Number, default:0},
-	loaded: {type:Boolean, default:false},
-	description: {type:String, default:"a hollow (?) upgrade."},
-	index: {type:Number, default:-1}, // TODO may be useless
-	location: {type:String, default:"DEPRECATED"}, // TODO likely useless
-	sn: {type:String, default:uuid.v4()},
-	creationDate: { type: Date, default:Date.now() }
-}, { minimize: false });
-
-const netwData = new Schema({
-	id: {type:String, default:uuid.v4()},
-	name: String,
-	kernel: String,
-	compList: [],
-	creationDate: { type: Date, default:Date.now() }
-}, { minimize: false });
-
-// these are all models
-const Account = mongoose.model('account', acctData);
-const Computer = mongoose.model('computer', compData);
-const Upgrade = mongoose.model('upgrade', upgrData);
-const Network = mongoose.model('network', netwData);
 
 compId = uuid.v4();
 netwId = uuid.v4();
 
 var newAcct = new Account({username:"root", passwdHash:"deadbeef", network:"some_random_id", homeComp:compId});
 var newComp = new Computer({id:compId, address:"alpha_psi_w39xcd", balance:159178420, creationDate:new Date(0)});
-var newUpg  = new Upgrade({});
+var newUpgr = new Upgrade({});
 var newNetw = new Network({id:netwId, name:"Proving Grounds", compList:[[compId]]});
 
 async function databaseInit() {
-	// THE FOLLOWING CODE BLOCKS:
-	// CHECK IF AN ACCOUNT/COMPUTER WITH THE SAME ID ALREADY EXISTS IN THE DB
-	// IF NOT, WRITE TO DB.
-	// IF SO, DO NOTHING.
-	await Account.find({}, (err, res) => {
-		if (err) { console.log(err); }
-		if (res[0] == null || res[0] == undefined) { // does it exist?
-			newAcct.save((err) => { // save to db
-				if (err) return console.error(err);
-				console.log("Created new user " + newAcct.username);
-			});
-		}
-	});
-
-	await Computer.find({}, (err, res) => {
-		if (err) { console.log(err); }
-		if (res[0] == null || res[0] == undefined) { // does it exist?
-			newComp.save((err) => { // save to db
-				if (err) return console.log(err);
-				console.log("Created new computer " + newComp.address);
-			});
-		}
-	});
-
-	await Upgrade.find({}, (err, res) => {
-		if (err) { console.log(err); }
-		if (res[0] == null || res[0] == undefined) { // does it exist?
-			newUpg.save((err) => { // save to db
-				if (err) return console.log(err);
-				console.log("Created new upgrade " + newUpg.name);
-			});
-		}
-	});
-
-	await Network.find({name:"Proving Grounds"}, (err, result) => {
-		if (err) { console.log(err); }
-		if (result[0] == null || result[0] == undefined) { // does it exist?
-			newNetw.save((err) => { // save to db
-				if (err) return console.log(err);
-				console.log("Created new network " + newNetw.name);
-			});
-		}
-	})
+	await accountService.initializeInDatabase(newAcct);
+	await computerService.initializeInDatabase(newComp);
+	await upgradeService.initializeInDatabase(newUpgr);
+	await networkService.initializeInDatabase(newNetw);
 }
 
 async function databasePull(datasets) {
@@ -117,10 +42,12 @@ async function databasePull(datasets) {
 	datasets.netw = await Network.find({})
 	datasets.upgr = await Upgrade.find({})
 	datasets.comp = await Computer.find({})
+	datasets.user = await User.find({})
 	if (datasets.acct == undefined) { console.log("acct empty") } else { console.log("acct success") }
 	if (datasets.netw == undefined) { console.log("netw empty") } else { console.log("netw success") }
 	if (datasets.upgr == undefined) { console.log("upgr empty") } else { console.log("upgr success") }
 	if (datasets.comp == undefined) { console.log("comp empty") } else { console.log("comp success") }
+	if (datasets.user == undefined) { console.log("user empty") } else { console.log("user success") }
 	// this can 100% be cleaned up
 	return datasets;
 }
@@ -129,5 +56,4 @@ async function databasePull(datasets) {
 // end DB testing \\
 //  | | | | | | | \\
 
-//export default { Account: Account, Computer: Computer, Upgrade: Upgrade, databaseInit: databaseInit }
-module.exports = { Account: Account, Computer: Computer, Upgrade: Upgrade, databaseInit: databaseInit, Network: Network, databasePull: databasePull }
+module.exports = { databaseInit: databaseInit, databasePull: databasePull }

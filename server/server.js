@@ -3,7 +3,15 @@ const mongoose = require('mongoose');
 const uuid = require('uuid');
 const db = mongoose.connection;
 const BSON = require('bson');
-const common = require('./common.js');
+
+// services index
+const {
+	computerService: computerService,
+	accountService: accountService,
+	networkService: networkService,
+	upgradeService: upgradeService,
+	playerService: playerService
+} = require("./services");
 
 // worker setup (WIP)
 // TODO proper workers
@@ -13,7 +21,19 @@ var ret = 0;
 
 // file imports
 const configFile = require("./config.json")
-const { Account, Upgrade, Computer, databaseInit, Network, databasePull } = require("./databaseSchemas.js")
+const {
+	ComputerModel: Computer,
+	AccountModel: Account,
+	NetworkModel: Network,
+	UpgradeModel: Upgrade,
+	PlayerModel: Player
+} = require("./models")
+
+const {
+	databaseInit,
+	databasePull
+} = require("./databaseSchemas.js")
+
 var datasets = {};
 
 const port = 2332;
@@ -99,33 +119,21 @@ wss.on('connection', (ws) => {
 				ws.terminate();
 				return;
 			} else if (message.event == "register") {
-				ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
+				//ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
 				// NEW DB SEARCH
-				var found = false;
-				datasets.acct.find((o, i) => {
-					if (o.username == message.data.username) {
-						found = true;
-						ws.authed = false;
-						ws.currentUser = "???";
-						ws.send('{"event":"auth", "ok":false}');
-						console.log("User " + message.data.username + " failed authentication (attempted register with existing account " + message.data.username + ")");
-						return true; // stop searching
-					}
-				});
-				if (!found) {
-					var acctUUID = uuid.v4();
-					var compUUID = uuid.v4();
-					var registerAcct = new Account({id:acctUUID, username:message.data.username, passwdHash:message.data.password, network:"some_random_id", homeComp:3, creationDate:Date.now()});
-					var registerComp = new Computer({id:compUUID, address:common.genNodeName(), balance:0, specs:{}, creationDate:Date.now()});
-					// TODO PLEASE CHECK THOSE IDs ARENT TAKEN?? OR NOT THATS COOL TOO
-					datasets.acct.push(registerAcct);
-					datasets.comp.push(registerComp);
+				var exists = await accountService.doesAccountNameExist(message.data.username);
+				if (exists) {
+					ws.send("shit yourself nerd"); // TODO professionalize
+					console.log("Failed registration for user " + message.data.username);
+				} else {
+					datasets.acct.push(accountService.createAccount());
+					datasets.comp.push(computerService.createComputer());
 
 					ws.authed = true;
 					ws.currentUser = message.data.username;
 					ws.send('{"event":\"auth\", "ok":true}');
 					console.log("Created and successfully authenticated user " + message.data.username);
-					datasets.acct[2].save(); // actually sobbing rn
+					datasets.acct[2].save();
 				}
 			} else {
 				ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')
