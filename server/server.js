@@ -13,7 +13,19 @@ var ret = 0;
 
 // file imports
 const configFile = require("./config.json")
-const { Account, Upgrade, Computer, databaseInit, Network, databasePull } = require("./databaseSchemas.js")
+const {
+	CompModel: Computer,
+	AcctModel: Account,
+	NetwModel: Network,
+	UpgrModel: Upgrade,
+	UserModel: User
+} = require("./models")
+
+const {
+	databaseInit,
+	databasePull
+} = require("./databaseSchemas.js")
+
 var datasets = {};
 
 const port = 2332;

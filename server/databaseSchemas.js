@@ -1,62 +1,19 @@
-const mongoose = require('mongoose');
-const uuid = require('uuid');
-// TODO make sure this isn't dumb
-const common = require("./common.js");
+const
+	mongoose = require('mongoose'),
+	uuid = require('uuid'),
+	common = require("./common.js");
+
+const {
+	CompModel: Computer,
+	AcctModel: Account,
+	NetwModel: Network,
+	UpgrModel: Upgrade,
+	UserModel: User
+} = require("./models")
 
 //  | | | | | | | | \\
 // start DB testing \\
 //  | | | | | | | | \\
-
-const Schema = mongoose.Schema;
-const ObjectId = Schema.ObjectId;
-
-const acctData = new Schema({
-	id: {type:String, default:uuid.v4()},
-	username: String,
-	passwdHash: String,
-	network: String,
-	homeComp: String,
-	creationDate: { type: Date, default:Date.now() }
-}, { minimize: false });
-
-const compData = new Schema({
-	id: {type:String, default:uuid.v4()},
-	address: {type:String, default:common.genNodeName()},
-	balance: {type: Number, default: 0},
-	specs: {type:Object, default:{cpu:{name:"Shitter CPU", clockSpeed:2.4}, memory:{}, storage:256}},
-	authUsers: {type: Object, default:{all:["welles"], fs:[], shell:[], memory:[]}},
-	ports: {type:Object, default:{}},
-	creationDate: {type: Date, default:Date.now()}
-}, { minimize: false }); // lets me save empty obj to db :)
-
-const upgrData = new Schema({
-	name: {type:String, default:"hollow_soft_v1"},
-	type: {type:String, default:"software"},
-	versionFrom: {type:Number, default:0.1},
-	versionTo: {type:Number, default:0.1},
-	components: {type:Object, default:{}},
-	tier: {type:Number, default:0},
-	loaded: {type:Boolean, default:false},
-	description: {type:String, default:"a hollow (?) upgrade."},
-	index: {type:Number, default:-1}, // TODO may be useless
-	location: {type:String, default:"DEPRECATED"}, // TODO likely useless
-	sn: {type:String, default:uuid.v4()},
-	creationDate: { type: Date, default:Date.now() }
-}, { minimize: false });
-
-const netwData = new Schema({
-	id: {type:String, default:uuid.v4()},
-	name: String,
-	kernel: String,
-	compList: [],
-	creationDate: { type: Date, default:Date.now() }
-}, { minimize: false });
-
-// these are all models
-const Account = mongoose.model('account', acctData);
-const Computer = mongoose.model('computer', compData);
-const Upgrade = mongoose.model('upgrade', upgrData);
-const Network = mongoose.model('network', netwData);
 
 compId = uuid.v4();
 netwId = uuid.v4();
@@ -117,10 +74,12 @@ async function databasePull(datasets) {
 	datasets.netw = await Network.find({})
 	datasets.upgr = await Upgrade.find({})
 	datasets.comp = await Computer.find({})
+	datasets.user = await User.find({})
 	if (datasets.acct == undefined) { console.log("acct empty") } else { console.log("acct success") }
 	if (datasets.netw == undefined) { console.log("netw empty") } else { console.log("netw success") }
 	if (datasets.upgr == undefined) { console.log("upgr empty") } else { console.log("upgr success") }
 	if (datasets.comp == undefined) { console.log("comp empty") } else { console.log("comp success") }
+	if (datasets.user == undefined) { console.log("user empty") } else { console.log("user success") }
 	// this can 100% be cleaned up
 	return datasets;
 }
