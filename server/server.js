@@ -97,19 +97,18 @@ wss.on('connection', (ws) => {
 		if (ws.authed != true) {
 			if (message.event == "login") {
 				// TODO CHANGE TO WORK WITH COPY IN MEMORY
+				// ?????? wdym by this
 				accountService.findAndAuthenticate(ws, message.data.username);
-				//
-				//
+			} else if (message.event == "register") {
+				// ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
+				// ^ FOR TESTING W FRIENDS
+				await accountService.registerUser(ws, message.event.username, datasets)
 			} else if (message.event == "disconnect" || message.event == "exit" || message.event == "logout") {
 				// TODO clean this up
 				ws.authed = false;
 				await ws.send('{"event":"exit", "ok":true, "msg":"Logout successful"}')
 				ws.terminate(); // TODO remove
 				return;
-			} else if (message.event == "register") {
-				// ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
-				// NEW DB SEARCH
-				await accountService.registerUser(ws, message.event.username, datasets)
 			} else {
 				ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')
 			}
@@ -119,7 +118,6 @@ wss.on('connection', (ws) => {
 				var cmdParts = message.data.cmd.split(" ");
 				// TODO SANITIZE
 				console.log(cmdParts);
-				// uhhh more shit i think
 				workers(cmdParts, datasets, ws, (err, out) => {ws.send(out)});
 				//workerFarm.end(workers);
 			}
