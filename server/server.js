@@ -97,44 +97,19 @@ wss.on('connection', (ws) => {
 		if (ws.authed != true) {
 			if (message.event == "login") {
 				// TODO CHANGE TO WORK WITH COPY IN MEMORY
-				Account.findOne({username:message.data.username}, (err, res) => {
-					if (err) {console.log(err);}
-					if (res != null || res != undefined) {
-						ws.authed = true;
-						ws.currentUser = message.data.username;
-						ws.send('{"event":"auth", "ok":true}');
-						console.log("Found and successfully authenticated user " + res.username);
-					} else {
-						ws.authed = false;
-						ws.currentUser = "???";
-						ws.send('{"event":"auth", "ok":false}');
-						console.log("Authentication failed for user " + message.data.username + ". User not found");
-					}
-					return res;
-				});
+				accountService.findAndAuthenticate(ws, message.data.username);
+				//
+				//
 			} else if (message.event == "disconnect" || message.event == "exit" || message.event == "logout") {
 				// TODO clean this up
 				ws.authed = false;
 				await ws.send('{"event":"exit", "ok":true, "msg":"Logout successful"}')
-				ws.terminate();
+				ws.terminate(); // TODO remove
 				return;
 			} else if (message.event == "register") {
-				//ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
+				// ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
 				// NEW DB SEARCH
-				var exists = await accountService.doesAccountNameExist(message.data.username);
-				if (exists) {
-					ws.send("shit yourself nerd"); // TODO professionalize
-					console.log("Failed registration for user " + message.data.username);
-				} else {
-					datasets.acct.push(accountService.createAccount());
-					datasets.comp.push(computerService.createComputer());
-
-					ws.authed = true;
-					ws.currentUser = message.data.username;
-					ws.send('{"event":\"auth\", "ok":true}');
-					console.log("Created and successfully authenticated user " + message.data.username);
-					datasets.acct[2].save();
-				}
+				await accountService.registerUser(ws, message.event.username, datasets)
 			} else {
 				ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')
 			}
