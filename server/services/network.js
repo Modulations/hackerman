@@ -1,4 +1,4 @@
-const { Network: Network } = require('../models');
+const { NetworkModel: Network } = require('../models');
 const uuid = require('uuid');
 
 const createNetwork = () => {

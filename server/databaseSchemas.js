@@ -42,7 +42,7 @@ async function databasePull(datasets) {
 	datasets.netw = await Network.find({})
 	datasets.upgr = await Upgrade.find({})
 	datasets.comp = await Computer.find({})
-	datasets.user = await User.find({})
+	datasets.user = await Player.find({})
 	if (datasets.acct == undefined) { console.log("acct empty") } else { console.log("acct success") }
 	if (datasets.netw == undefined) { console.log("netw empty") } else { console.log("netw success") }
 	if (datasets.upgr == undefined) { console.log("upgr empty") } else { console.log("upgr success") }
