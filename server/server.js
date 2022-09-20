@@ -28,6 +28,7 @@ const {
 	UpgradeModel: Upgrade,
 	PlayerModel: Player
 } = require("./models")
+// TODO obsolete, accessed via services now
 
 const {
 	databaseInit,
@@ -94,20 +95,17 @@ wss.on('connection', (ws) => {
 		console.log('received: %s', message);
 		console.log("Event Type: " + message.event);
 
-		if (ws.authed != true) {
+		if (ws.authed != true) { // user not logged in
 			if (message.event == "login") {
-				// TODO CHANGE TO WORK WITH COPY IN MEMORY
-				// ?????? wdym by this
 				accountService.findAndAuthenticate(ws, message.data.username);
 			} else if (message.event == "register") {
 				// ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
-				// ^ FOR TESTING W FRIENDS
-				await accountService.registerUser(ws, message.event.username, datasets)
+				// ^ for closed alpha
+				await accountService.registerUser(ws, message.data.username, message.data.password, datasets)
 			} else if (message.event == "disconnect" || message.event == "exit" || message.event == "logout") {
-				// TODO clean this up
-				ws.authed = false;
-				await ws.send('{"event":"exit", "ok":true, "msg":"Logout successful"}')
-				ws.terminate(); // TODO remove
+				accountService.logoutUser(ws);
+				ws.send('{"event":"exit", "ok":true, "msg":"Logout successful"}')
+				ws.terminate();
 				return;
 			} else {
 				ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')

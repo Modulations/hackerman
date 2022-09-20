@@ -1,11 +1,12 @@
-const { NetworkModel: Network } = require('../models');
+const { NetworkModel: Network, ComputerModel: Computer } = require('../models');
 const uuid = require('uuid');
 
-const createNetwork = () => {
+const createNetwork = (netName = "Indexed") => {
     var networkUUID = uuid.v4();
-    //var newUpgrade = new Computer({id:compUUID, address:genNodeName(), balance:0, specs:{}, creationDate:Date.now()});
-    // TODO complete
-	return false;
+	netName += " Network";
+    var newNetwork = new Computer({id:networkUUID, compList:[], name:netName, creationDate:Date.now()});
+    // TODO complete?
+	return newNetwork;
 }
 
 const initializeInDatabase = async (newNetw) => (
@@ -21,5 +22,6 @@ const initializeInDatabase = async (newNetw) => (
 )
 
 module.exports = {
-    initializeInDatabase
+    initializeInDatabase,
+	createNetwork
 }

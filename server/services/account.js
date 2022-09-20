@@ -1,15 +1,30 @@
 const { AccountModel: Account } = require('../models');
+
+// Tried to do the thing below, got circular dependency issues. just keep the requires.
+/*
+const {
+	computerService: computerService,
+	networkService: networkService,
+	upgradeService: upgradeService,
+	playerService: playerService
+} = require("./services");
+*/
+const computerService = require("./computer.js");
+const networkService = require("./network.js");
+const upgradeService = require("./upgrade.js");
+const playerService = require("./player.js");
+
 const uuid = require('uuid');
 
 
 const createAccount = (username, passwd) => {
     var acctUUID = uuid.v4();
     var netwUUID = uuid.v4();
-    var registerAcct = new Account({id:acctUUID, username, passwdHash:passwd, network:netwUUID, homeComp:99999999, creationDate:Date.now()});
+    var registerAcct = new Account({id:acctUUID, username:username, passwdHash:passwd, network:netwUUID, homeComp:99999999, creationDate:Date.now()});
 	return registerAcct;
 }
 
-const doesAccountNameExist = (username) => (Account.exists({username}))
+const doesAccountNameExist = (usrname) => (Account.exists({username:usrname}))
 
 const findAndAuthenticate = (websocket, usrname) => {
 	Account.findOne({username:usrname}, (err, res) => {
@@ -29,14 +44,15 @@ const findAndAuthenticate = (websocket, usrname) => {
 	})
 }
 
-const registerUser = (websocket, usrname, ds) => { // ds = datasets
+const registerUser = (websocket, usrname, passwd, ds) => { // ds = datasets
 	var exists = doesAccountNameExist(usrname);
 	if (exists) {
-		websocket.send("User already exists."); // TODO professionalize
+		websocket.send("User already exists."); // TODO rewrite
 		console.log("Failed registration for user " + usrname);
 	} else {
-		ds.acct.push(accountService.createAccount());
+		ds.acct.push(createAccount(usrname, passwd));
 		ds.comp.push(computerService.createComputer());
+		ds.netw.push(networkService.createNetwork(usrname));
 
 		websocket.authed = true;
 		websocket.currentUser = usrname;
@@ -44,6 +60,11 @@ const registerUser = (websocket, usrname, ds) => { // ds = datasets
 		console.log("Created and successfully authenticated user " + usrname);
 		ds.acct[2].save();
 	}
+}
+
+const logoutUser = (websocket) => {
+	websocket.authed = false;
+	websocket.currentUser = "???";
 }
 
 const initializeInDatabase = async (newAcct) => (
@@ -63,5 +84,6 @@ module.exports = {
     doesAccountNameExist,
     initializeInDatabase,
 	findAndAuthenticate,
-	registerUser
+	registerUser,
+	logoutUser
 }
