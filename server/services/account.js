@@ -20,11 +20,17 @@ const uuid = require('uuid');
 const createAccount = (username, passwd) => {
     var acctUUID = uuid.v4();
     var netwUUID = uuid.v4();
+	// TODO sync netwUUID and homeComp
     var registerAcct = new Account({id:acctUUID, username:username, passwdHash:passwd, network:netwUUID, homeComp:99999999, creationDate:Date.now()});
 	return registerAcct;
 }
 
-const doesAccountNameExist = (usrname) => (Account.exists({username:usrname}))
+const doesAccountNameExist = (usrname) => {
+	Account.exists({username:usrname}, (err, data) => {
+		console.log(data);
+		return data;
+	});
+}
 
 const findAndAuthenticate = (websocket, usrname) => {
 	Account.findOne({username:usrname}, (err, res) => {
@@ -47,7 +53,7 @@ const findAndAuthenticate = (websocket, usrname) => {
 const registerUser = (websocket, usrname, passwd, ds) => { // ds = datasets
 	var exists = doesAccountNameExist(usrname);
 	if (exists) {
-		websocket.send("User already exists."); // TODO rewrite
+		websocket.send("Error: User already exists.");
 		console.log("Failed registration for user " + usrname);
 	} else {
 		ds.acct.push(createAccount(usrname, passwd));

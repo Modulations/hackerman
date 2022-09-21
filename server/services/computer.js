@@ -16,7 +16,7 @@ const genNodeName = () => {
 }
 
 const genCompName = () => {
-	var prefixes = "Indexed  Unindexed  Unknown  Corporate  Sentient  Personal  Unidentified  Government";
+	var prefixes = "Indexed  Unindexed  Unknown  Corporate  Sentient  Personal  Unidentified  Government".split("  ");
 	var suffixes = "Gateway  Battlestation  Asset Cache  Test Node  Workstation  Testbench  Storage  Server  PC  Personal Computer  Shell  Cluster  Dropserver  Honeypot  Mainframe  Cache  Home  Work  Proxy  Authentication  Laptop  Internal  Internal Services  Internal Cache  Internal  Router  Public Router  Public  Source  Repo Base  Virtual Environment  Virtual Machine".split("  ");
 	var chosenPrefix = prefixes[Math.floor(Math.random() * prefixes.length)]
 	var chosenSuffix = suffixes[Math.floor(Math.random() * suffixes.length)]
@@ -27,7 +27,7 @@ const genCompName = () => {
 
 const createComputer = () => {
     var compUUID = uuid.v4();
-    var registerComp = new Computer({id:compUUID, address:genNodeName(), name:genCompName(), balance:0, specs:{}, creationDate:Date.now()});
+	var registerComp = new Computer({id:compUUID, address:genNodeName(), name:genCompName(), balance:0, specs: {cpu:{name:"Shitter CPU", clockSpeed:2.4}, memory:{}, storage:256}, authUsers: {all:["atlas"], fs:[], shell:[], memory:[]}, ports: {}, creationDate:new Date(0)});
 	return registerComp;
 }
 

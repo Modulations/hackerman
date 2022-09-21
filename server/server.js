@@ -21,18 +21,11 @@ var ret = 0;
 
 // file imports
 const configFile = require("./config.json")
-const {
-	ComputerModel: Computer,
-	AccountModel: Account,
-	NetworkModel: Network,
-	UpgradeModel: Upgrade,
-	PlayerModel: Player
-} = require("./models")
-// TODO obsolete, accessed via services now
 
 const {
 	databaseInit,
-	databasePull
+	databasePull,
+	databaseSync
 } = require("./databaseSchemas.js")
 
 var datasets = {};
@@ -124,6 +117,8 @@ wss.on('connection', (ws) => {
 				ws.send('{"event":"exit", "ok":true, "desc":"Logged out."}')
 				console.log("Unauthenticated user " + ws.currentUser);
 				ws.currentUser = "formerly " + ws.currentUser;
+			} else if (message.event == "sync") {
+				await databaseSync(datasets);
 			}
 		}
 		console.timeEnd(ws.id);

@@ -13,13 +13,13 @@ const assignComputerToPlayer = () => {
     return false;
 }
 
-const initializeInDatabase = async (newAcct) => (
-    Account.find({}, (err, res) => {
+const initializeInDatabase = async (newUser) => (
+    Player.find({}, (err, res) => {
 		if (err) { console.log(err); }
 		if (res[0] == null || res[0] == undefined) { // does it exist?
-			newAcct.save((err) => { // save to db
+			newUser.save((err) => { // save to db
 				if (err) return console.error(err);
-				console.log("Created new user " + newAcct.username);
+				console.log("Created new user " + newUser.username);
 			});
 		}
 	})
