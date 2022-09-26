@@ -56,9 +56,17 @@ async function databasePull(datasets) {
 }
 
 function syncOrErr(path) {
-	for (var i = 0; i < path.length; i++) {
-		path[i].save((err) => {
-			if (err) { console.log("Error saving to database.\nDetails below:\n\n"); console.log(err); console.log("\n" + path[i]) }
+	var failedOne;
+	for (var i = 0; i < path.length; ++i) {
+		failedOne = path[i];
+		path[i].save((err, res) => {
+			if (err) {
+				console.log("Error saving to database.\nDetails below:\n");
+				console.log(err);
+				console.log("\n" + failedOne);
+			} else {
+				console.log(res);
+			}
 		});
 	}
 }

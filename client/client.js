@@ -11,6 +11,7 @@ ws.on('open', async () => {
     //ws.send(buildEvent("register", {"username":"risk", "password":"aaaaaaa"}));
     //ws.send(buildEvent("register", {"username":"shitternet", "password":"aaaaaaa"}));
     //ws.send(buildEvent("disconnect"))
+    /*
     ws.send(buildEvent("login", {"username":"risk", "password":"aaaaaaa"}));
     
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -29,7 +30,10 @@ ws.on('open', async () => {
 
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    ws.terminate();
+    ws.terminate();*/
+    ws.send(buildEvent("register", {"username":"rock", "password":"aaaaaaa"}));
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    ws.send(buildEvent("sync", {}));
 });
 
 ws.on('message', (message) => {

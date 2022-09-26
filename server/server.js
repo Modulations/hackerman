@@ -119,6 +119,7 @@ wss.on('connection', (ws) => {
 				ws.currentUser = "formerly " + ws.currentUser;
 			} else if (message.event == "sync") {
 				await databaseSync(datasets);
+				ws.send('{"event":"cmd", "ok":true}')
 			}
 		}
 		console.timeEnd(ws.id);

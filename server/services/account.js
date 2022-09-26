@@ -17,11 +17,11 @@ const playerService = require("./player.js");
 const uuid = require('uuid');
 
 
-const createAccount = (username, passwd) => {
+const createAccount = (username, passwd, netw) => {
     var acctUUID = uuid.v4();
     var netwUUID = uuid.v4();
 	// TODO sync netwUUID and homeComp
-    var registerAcct = new Account({id:acctUUID, username:username, passwdHash:passwd, network:netwUUID, homeComp:99999999, creationDate:Date.now()});
+    var registerAcct = new Account({id:acctUUID, username:username, passwdHash:passwd, network:netwUUID, homeComp:netw, creationDate:Date.now()});
 	return registerAcct;
 }
 
@@ -56,9 +56,11 @@ const registerUser = (websocket, usrname, passwd, ds) => { // ds = datasets
 		websocket.send("Error: User already exists.");
 		console.log("Failed registration for user " + usrname);
 	} else {
-		ds.acct.push(createAccount(usrname, passwd));
-		ds.comp.push(computerService.createComputer());
-		ds.netw.push(networkService.createNetwork(usrname));
+		var tempComp = computerService.createComputer();
+		ds.comp.push(tempComp);
+		var tempNetw = networkService.createNetwork(usrname, tempComp.id);
+		ds.netw.push(tempNetw);
+		ds.acct.push(createAccount(usrname, passwd, tempNetw.id));
 
 		websocket.authed = true;
 		websocket.currentUser = usrname;

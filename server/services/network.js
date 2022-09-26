@@ -1,10 +1,14 @@
 const { NetworkModel: Network, ComputerModel: Computer } = require('../models');
 const uuid = require('uuid');
 
-const createNetwork = (netName = "Indexed") => {
+const createNetwork = (netName = "Indexed", primComp) => {
     var networkUUID = uuid.v4();
 	netName += " Network";
-    var newNetwork = new Computer({id:networkUUID, compList:[], name:netName, creationDate:Date.now()});
+    var newNetwork = new Network({
+		id:networkUUID,
+		compList:[primComp],
+		name:netName,
+		creationDate:Date.now()});
     // TODO complete?
 	return newNetwork;
 }

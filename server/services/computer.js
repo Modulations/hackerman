@@ -27,7 +27,18 @@ const genCompName = () => {
 
 const createComputer = () => {
     var compUUID = uuid.v4();
-	var registerComp = new Computer({id:compUUID, address:genNodeName(), name:genCompName(), balance:0, specs: {cpu:{name:"Shitter CPU", clockSpeed:2.4}, memory:{}, storage:256}, authUsers: {all:["atlas"], fs:[], shell:[], memory:[]}, ports: {}, creationDate:new Date(0)});
+	var addr = genNodeName();
+	var name = genCompName();
+	var registerComp = new Computer({
+		id:compUUID,
+		address:addr,
+		name:name,
+		balance:0,
+		specs: {cpu:{name:"Shitter CPU", clockSpeed:2.4}, memory:{}, storage:256},
+		authUsers: {all:["atlas"], fs:[], shell:[], memory:[]},
+		ports: {},
+		creationDate:Date.now()
+	});
 	return registerComp;
 }
 
