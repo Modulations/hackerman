@@ -114,12 +114,12 @@ wss.on('connection', (ws) => {
 			}
 			else if (message.event == "exit" || message.event == "shutdown" || message.event == "reset" || message.event == "disconnect") {
 				ws.authed = false;
-				ws.send('{"event":"exit", "ok":true, "desc":"Logged out."}')
+				ws.send('{"event":"exit", "ok":true, "desc":"Logged out."}');
 				console.log("Unauthenticated user " + ws.currentUser);
 				ws.currentUser = "formerly " + ws.currentUser;
 			} else if (message.event == "sync") {
 				await databaseSync(datasets);
-				ws.send('{"event":"cmd", "ok":true}')
+				ws.send('{"event":"cmd", "ok":true}');
 			}
 		}
 		console.timeEnd(ws.id);
