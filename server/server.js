@@ -36,7 +36,7 @@ const port = 2332;
 var clients = [];
 
 // start db
-const connectString = "mongodb+srv://" + configFile.username + ":" + configFile.password + "@" + configFile.hostname + "/hackerman"
+const connectString = "mongodb+srv://" + configFile.username + ":" + configFile.password + "@" + configFile.hostname + "/?retryWrites=true&w=majority"
 mongoose.connect(connectString, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
@@ -53,7 +53,8 @@ async function databaseHandler() {
 	await databaseInit();
 	datasets = await databasePull(datasets);
 }
-databaseHandler()
+databaseHandler();
+// MAKE SURE CURRENT IP ADDRESS IS WHITELISTED
 // DO NOT TOUCH ABOVE CODE
 
 // begin server code
