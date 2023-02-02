@@ -7,7 +7,7 @@ export default {
 }
 
 ws.onopen = e => {
-    console.log('Websocket is EWERWEOKNDNSKFBJKDFBDSKGing');
+    console.log('Websocket connected');
 }
 
 ws.onmessage = e => {
