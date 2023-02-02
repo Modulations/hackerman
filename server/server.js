@@ -113,7 +113,7 @@ wss.on('connection', (ws) => {
 				workers(cmdParts, datasets, ws, (err, out) => {ws.send(out)});
 				//workerFarm.end(workers);
 			}
-			else if (message.event == "exit" || message.event == "shutdown" || message.event == "reset" || message.event == "disconnect") {
+			else if (message.event == "logout") {
 				ws.authed = false;
 				ws.send('{"event":"exit", "ok":true, "desc":"Logged out."}');
 				console.log("Unauthenticated user " + ws.currentUser);
