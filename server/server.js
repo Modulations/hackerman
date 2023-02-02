@@ -36,7 +36,7 @@ const port = 2332;
 var clients = [];
 
 // start db
-const connectString = "mongodb+srv://" + configFile.username + ":" + configFile.password + "@" + configFile.hostname + "/?retryWrites=true&w=majority"
+const connectString = "mongodb+srv://" + configFile.username + ":" + configFile.password + "@" + configFile.hostname + "/hackerman"
 mongoose.connect(connectString, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
