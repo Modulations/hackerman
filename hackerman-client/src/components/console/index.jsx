@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
 import ConsoleLine from './consoleline'
 import {animateScroll} from 'react-scroll'
 

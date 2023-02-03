@@ -6,7 +6,7 @@ module.exports = (cmdParts, datasets, ws, callbackFunc) => {
     switch (cmdParts[0]) {
         // TODO make it return json objects
         default:
-            callbackFunc(null, "Unknown command.");
+            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Failure"}));
             break;
         case "ls":
             lsCmd();

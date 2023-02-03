@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import reactLogo from './assets/react.svg'
 import DebugPage from './pages/admin'
 import WebSocketService from './services/websocket-service';
@@ -15,18 +15,21 @@ function onCopyReplace(e) {
 
 function App() {
   const [consoleLog, setConsoleLog] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     window.addEventListener('copy', onCopyReplace);
     return () => window.removeEventListener('copy', onCopyReplace);
   }, [])
 
-  const sendServerMessage = (message) => {
-    console.log(message);
-    WebSocketService.sendMessage(message);
-  }
-
   const addMessage = message => { // adds console log message
+    const { event, ok } = JSON.parse(message);
+    console.log(event);
+    
+    if (event === 'auth' && ok === true) {
+      setIsLoggedIn(true);
+    }
+
     setConsoleLog([
       ...consoleLog,
       message
@@ -35,15 +38,26 @@ function App() {
 
   WebSocketService.onMessageRecieved(addMessage);
 
+  const sendServerMessage = (message) => {
+    console.log(message);
+    WebSocketService.sendMessage(message);
+  }
+
+  const PageRouter = () =>
+    isLoggedIn
+      ? (
+        <div className="console_container">
+          <Console log={consoleLog} />
+          <div className="console_input_container">
+            <ConsoleInput onSendCommand={input => WebSocketService.sendCommand(input)} />
+          </div>
+        </div>
+      )
+      : <DebugPage onSendMessage={sendServerMessage} />
+
   return (
     <div className="App">
-      <DebugPage onSendMessage={sendServerMessage} />
-      <div className="console_container">
-        <Console log={consoleLog} />
-        <div className="console_input_container">
-          <ConsoleInput onSendCommand={input => WebSocketService.sendCommand(input)} />
-        </div>
-      </div>
+      { PageRouter() }
     </div>
   )
 }
