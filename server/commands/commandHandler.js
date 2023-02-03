@@ -10,11 +10,11 @@ module.exports = (cmdParts, datasets, ws, callbackFunc) => {
             break;
         case "ls":
             lsCmd();
-            callbackFunc(null, "Listing...")
+            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Unimplemented", data:{}}))
             break;
         case "connect":
             connectCmd();
-            callbackFunc(null, "Connecting...")
+            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Unimplemented"}))
             break;
     }
 }
