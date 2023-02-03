@@ -40,6 +40,7 @@ const DebugPage = ({ onSendMessage }) => {
                                 type={arg.type}
                                 onChange={handleInputChange}
                                 onKeyDown={hasPressedEnter}
+                                autoComplete="off"
                                 value={eventMessage[arg.name]}
                                 placeholder={arg.debug_placeholder}
                             />

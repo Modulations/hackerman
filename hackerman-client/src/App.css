@@ -39,3 +39,104 @@
 .read-the-docs {
   color: #888;
 }
+
+
+@font-face {
+	font-family: 'white_rabbitregular';
+	src: url('https://hackmud-dtr.github.io/assets/whiterabbit-webfont.woff2') format('woff2'),
+		 url('https://hackmud-dtr.github.io/assets/whiterabbit-webfont.woff') format('woff'),
+		 url('https://hackmud-dtr.github.io/assets/whiterabbit-webfont.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+body {
+  /*background-color: #fff;*/
+  color: #83B0F2;
+  font-family: white_rabbitregular,monospace !important;
+  margin: 0;
+  padding: 1rem;
+}
+
+pre {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.console_container {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  
+  background-color: #101215;
+  line-height: 1.1;
+  font-weight: 600;
+  background-image: repeating-linear-gradient(#0e0e0e, #0e0e0e 2px, #101215 2px, #101215 4px);
+  background-size: 100% 4px;
+}
+
+.console {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.console_input_container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-self: flex-end;
+}
+
+.console_input {
+  display: flex;
+  height: 2rem;
+  background: #1a1a1a;
+  border: 2px solid #000;
+  color: #fff;
+  padding-left: 1rem;
+  outline: none;
+  font-size: 1rem;
+  
+  font-family: white_rabbitregular,monospace;
+  line-height: 1.1;
+}
+
+.console_line {
+  display: flex;
+  flex-direction: row;
+}
+
+.letter {
+/*   display: flex; */
+  flex-direction: row;
+  position: relative;
+  white-space: pre;
+}
+
+.blackout {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: #7AB2F4;
+}
+
+.blackout-exit {
+  -webkit-transition: opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+  -moz-transition: opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+  -o-transition: opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+  transition: opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+  opacity: 1;
+}
+
+.blackout.blackout-exit-done {
+  opacity: 0;
+  -webkit-transition: opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+  -moz-transition: opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+  -o-transition: opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+  transition: opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+}
