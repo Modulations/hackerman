@@ -1,16 +1,20 @@
 const lsCmd = require("./ls.js");
 const connectCmd = require("./connect.js");
+const testCmd = require("./test.js");
 
 module.exports = (cmdParts, datasets, ws, callbackFunc) => {
     console.log('PID ' + process.pid + "\nHandling command: " + cmdParts.join(" ") + "");
     switch (cmdParts[0]) {
         // TODO make it return json objects
         default:
-            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Failure"}));
+            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Failure\nUnknown Command"}));
             break;
         case "ls":
             lsCmd();
             callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Unimplemented", data:{}}))
+            break;
+        case "test":
+            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:testCmd(), data:{}}))
             break;
         case "connect":
             connectCmd();
