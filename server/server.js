@@ -67,17 +67,19 @@ wss.on('connection', (ws) => {
 	var clientId = uuid.v4();
 	ws.id = clientId;
 	ws.authed = false;
-	ws.currentUser = "???";
-	ws.currentComp = 0;
+	// above should not be touched
+	ws.context = {}
+	ws.context.currentUser = "???";
+	ws.context.currentComp = 0;
 	// TODO connection chain implementation
-	ws.connectionChain = [];
-	console.log(ws.id);
+	ws.context.connectionChain = [];
+	console.log(ws.context.id);
 	clients.push(ws);
 	console.log("Active Connections: " + clients.length);
 
 	ws.on('message', async (message) => {
-		console.time(ws.id);
-		console.log(ws.id + " (" + ws.currentUser + ")");
+		console.time(ws.context.id);
+		console.log(ws.context.id + " (" + ws.context.currentUser + ")");
 		// in case someone doesnt send json
 		try {
 			message = JSON.parse(message.toString());
@@ -104,7 +106,7 @@ wss.on('connection', (ws) => {
 			} else {
 				ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')
 			}
-		} else {
+		} else { // user logged in
 			if (message.event == "command") {
 				console.log("Received command: " + message.data.cmd)
 				var cmdParts = message.data.cmd.split(" ");
@@ -116,24 +118,24 @@ wss.on('connection', (ws) => {
 			else if (message.event == "logout") {
 				ws.authed = false;
 				ws.send('{"event":"exit", "ok":true, "desc":"Logged out."}');
-				console.log("Unauthenticated user " + ws.currentUser);
-				ws.currentUser = "formerly " + ws.currentUser;
+				console.log("Unauthenticated user " + ws.context.currentUser);
+				ws.context.currentUser = "formerly " + ws.context.currentUser;
 			} else if (message.event == "sync") {
 				await databaseSync(datasets);
 				ws.send('{"event":"cmd", "ok":true}');
 			}
 		}
-		console.timeEnd(ws.id);
+		console.timeEnd(ws.context.id);
 		console.log("");
 	});
 
 	ws.on('close', (data) => {
-		console.log(ws.id);
+		console.log(ws.context.id);
 		var targetIndex = -1;
 		for (var v = 0; v < clients.length; v++) {
 			var client = clients[v];
 
-			if (client.id === ws.id)
+			if (client.id === ws.context.id)
 				targetIndex = v;
 		}
 		// ^  find and

@@ -37,16 +37,18 @@ const findAndAuthenticate = (websocket, usrname) => {
 	if (err) {console.log(err);}
 	if (res != null || res != undefined) {
 		websocket.authed = true;
-		websocket.currentUser = usrname;
+		websocket.context.currentUser = usrname;
 		websocket.send('{"event":"auth", "ok":true}');
 		console.log("Found and successfully authenticated user " + res.username);
+		return true;
 	} else {
 		websocket.authed = false;
-		websocket.currentUser = "???";
+		websocket.context.currentUser = "???";
 		websocket.send('{"event":"auth", "ok":false}');
 		console.log("Authentication failed for user " + usrname + ". User not found");
+		return false;
 	}
-	return res;
+	//return res;
 	})
 }
 
@@ -63,7 +65,7 @@ const registerUser = (websocket, usrname, passwd, ds) => { // ds = datasets
 		ds.acct.push(createAccount(usrname, passwd, tempNetw.id));
 
 		websocket.authed = true;
-		websocket.currentUser = usrname;
+		websocket.context.currentUser = usrname;
 		websocket.send("{\"event\":\"auth\", \"ok\":true}");
 		console.log("Created and successfully authenticated user " + usrname);
 		ds.acct[2].save();
@@ -72,7 +74,7 @@ const registerUser = (websocket, usrname, passwd, ds) => { // ds = datasets
 
 const logoutUser = (websocket) => {
 	websocket.authed = false;
-	websocket.currentUser = "???";
+	websocket.context.currentUser = "???";
 }
 
 const initializeInDatabase = async (newAcct) => (

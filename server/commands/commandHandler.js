@@ -14,7 +14,7 @@ module.exports = (cmdParts, datasets, ws, callbackFunc) => {
             callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Unimplemented", data:{}}))
             break;
         case "test":
-            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:testCmd(), data:{}}))
+            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:testCmd(datasets, ws), data:{}}))
             break;
         case "connect":
             connectCmd();
