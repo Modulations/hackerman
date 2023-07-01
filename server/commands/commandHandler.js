@@ -1,5 +1,7 @@
 const lsCmd = require("./ls.js");
 const connectCmd = require("./connect.js");
+const ipCmd = require("./ip.js");
+const hostnameCmd = require("./hostname.js");
 const testCmd = require("./test.js");
 
 module.exports = (cmdParts, datasets, ws, callbackFunc) => {
@@ -9,12 +11,18 @@ module.exports = (cmdParts, datasets, ws, callbackFunc) => {
         default:
             callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Failure\nUnknown Command"}));
             break;
+        case "test":
+            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:testCmd(datasets, ws, cmdParts), data:{}}))
+            break;
         case "ls":
             lsCmd();
             callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Unimplemented", data:{}}))
             break;
-        case "test":
-            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:testCmd(datasets, ws), data:{}}))
+        case "ip":
+            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:ipCmd(datasets, ws), data:{}}))
+            break;
+        case "hostname":
+            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:hostnameCmd(datasets, ws), data:{}}))
             break;
         case "connect":
             connectCmd();

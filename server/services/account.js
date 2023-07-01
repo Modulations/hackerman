@@ -1,4 +1,4 @@
-const { AccountModel: Account } = require('../models');
+const { AccountModel: Account, ComputerModel: Computer } = require('../models');
 
 // Tried to do the thing below, got circular dependency issues. just keep the requires.
 /*
@@ -40,17 +40,51 @@ const findAndAuthenticate = (websocket, usrname) => {
 		websocket.context.currentUser = usrname;
 		websocket.send('{"event":"auth", "ok":true}');
 		console.log("Found and successfully authenticated user " + res.username);
-		return true;
+		console.log(res)
+		verifyAcctData(websocket, res.homeComp);
+		//return true;
 	} else {
 		websocket.authed = false;
 		websocket.context.currentUser = "???";
 		websocket.send('{"event":"auth", "ok":false}');
 		console.log("Authentication failed for user " + usrname + ". User not found");
-		return false;
+		//return false;
 	}
 	//return res;
 	})
 }
+
+const verifyAcctData = (websocket, id) => {
+	var compObj = Computer.find({id:id}, (err, res) => {
+		if (err) {console.log(err); return false;}
+		if (res[0] == null || res[0] == undefined) { // does it exist?
+			console.log("Invalid home computer for user")
+			var temporaryPC = computerService.createComputer();
+			temporaryPC.save((err) => { // save to db
+				if (err) return console.log(err);
+				console.log("Created new computer " + temporaryPC.address);
+			});
+			console.log(res)
+			updateHomeComp(websocket, temporaryPC);
+		} else {
+			websocket.context.currentComp = id;
+		}
+	})
+	return compObj;
+}
+
+const updateHomeComp = (websocket, newPC) => {
+	Account.findOne({username:websocket.context.currentUser}, (err, res) => {
+		if (err) {console.log(err);}
+		console.log(res) // should be the account record
+		res.homeComp = newPC.id;
+		res.save((err) => {
+			if (err) return console.log(err);
+			console.log("Updated record " + newPC.id);
+		});
+	});
+}
+
 
 const registerUser = (websocket, usrname, passwd, ds) => { // ds = datasets
 	var exists = doesAccountNameExist(usrname);
@@ -95,5 +129,7 @@ module.exports = {
     initializeInDatabase,
 	findAndAuthenticate,
 	registerUser,
+	updateHomeComp,
+	verifyAcctData,
 	logoutUser
 }

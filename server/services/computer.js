@@ -25,10 +25,10 @@ const genCompName = () => {
 	return fullName;
 }
 
-const createComputer = () => {
+const createComputer = (name = genCompName()) => {
     var compUUID = uuid.v4();
 	var addr = genNodeName();
-	var name = genCompName();
+	// var name = genCompName();
 	var registerComp = new Computer({
 		id:compUUID,
 		address:addr,

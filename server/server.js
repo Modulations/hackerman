@@ -42,7 +42,10 @@ mongoose.connect(connectString, {
 	useUnifiedTopology: true
 });
 
-db.on('error', console.error.bind(console, 'connection error:'));
+db.on('error', () => {
+	console.error.bind(console, 'connection error:')
+	console.log('Check that the server is not frozen, and that this IP address is whitelisted.')
+});
 db.once('open', () => {
 	console.log("DB connection established")
 });
@@ -70,7 +73,7 @@ wss.on('connection', (ws) => {
 	// above should not be touched
 	ws.context = {}
 	ws.context.currentUser = "???";
-	ws.context.currentComp = 0;
+	ws.context.currentComp = null;
 	// TODO connection chain implementation
 	ws.context.connectionChain = [];
 	console.log(ws.context.id);
@@ -93,7 +96,7 @@ wss.on('connection', (ws) => {
 
 		if (ws.authed != true) { // user not logged in
 			if (message.event == "login") {
-				accountService.findAndAuthenticate(ws, message.data.username);
+				accountService.findAndAuthenticate(ws, message.data.username); // formerly returned true/false
 			} else if (message.event == "register") {
 				// ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
 				// ^ for closed alpha
@@ -106,7 +109,9 @@ wss.on('connection', (ws) => {
 			} else {
 				ws.send('{"event":"auth", "ok":false, "desc":"Unauthenticated user. Please log in to continue."}')
 			}
-		} else { // user logged in
+		}
+		
+		else { // user logged in
 			if (message.event == "command") {
 				console.log("Received command: " + message.data.cmd)
 				var cmdParts = message.data.cmd.split(" ");
