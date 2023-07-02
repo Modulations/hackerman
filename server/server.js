@@ -96,7 +96,7 @@ wss.on('connection', (ws) => {
 
 		if (ws.authed != true) { // user not logged in
 			if (message.event == "login") {
-				accountService.findAndAuthenticate(ws, message.data.username); // formerly returned true/false
+				accountService.findAndAuthenticate(datasets, ws, message.data.username); // formerly returned true/false
 			} else if (message.event == "register") {
 				// ws.send('{"event":"auth", "ok":false, "msg":"Registration is currently closed."}');
 				// ^ for closed alpha

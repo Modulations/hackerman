@@ -1,0 +1,6 @@
+{
+    "username": "USERNAME",
+    "password": "PASSWORD",
+    "hostname": "HOSTNAME",
+    "comments":"Rename this file to config.json!"
+}

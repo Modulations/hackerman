@@ -32,7 +32,7 @@ const doesAccountNameExist = (usrname) => {
 	});
 }
 
-const findAndAuthenticate = (websocket, usrname) => {
+const findAndAuthenticate = (datasets, websocket, usrname) => {
 	Account.findOne({username:usrname}, (err, res) => {
 	if (err) {console.log(err);}
 	if (res != null || res != undefined) {
@@ -41,7 +41,7 @@ const findAndAuthenticate = (websocket, usrname) => {
 		websocket.send('{"event":"auth", "ok":true}');
 		console.log("Found and successfully authenticated user " + res.username);
 		console.log(res)
-		verifyAcctData(websocket, res.homeComp);
+		verifyAcctData(datasets, websocket, res.homeComp);
 		//return true;
 	} else {
 		websocket.authed = false;
@@ -54,7 +54,7 @@ const findAndAuthenticate = (websocket, usrname) => {
 	})
 }
 
-const verifyAcctData = (websocket, id) => {
+const verifyAcctData = (datasets, websocket, id) => {
 	var compObj = Computer.find({id:id}, (err, res) => {
 		if (err) {console.log(err); return false;}
 		if (res[0] == null || res[0] == undefined) { // does it exist?
@@ -63,9 +63,11 @@ const verifyAcctData = (websocket, id) => {
 			temporaryPC.save((err) => { // save to db
 				if (err) return console.log(err);
 				console.log("Created new computer " + temporaryPC.address);
+				datasets.comp.push(temporaryPC);
 			});
 			console.log(res)
-			updateHomeComp(websocket, temporaryPC);
+			websocket.context.currentComp = temporaryPC.id
+			updateHomeComp(datasets, websocket, temporaryPC);
 		} else {
 			websocket.context.currentComp = id;
 		}
@@ -73,7 +75,8 @@ const verifyAcctData = (websocket, id) => {
 	return compObj;
 }
 
-const updateHomeComp = (websocket, newPC) => {
+const updateHomeComp = (datasets, websocket, newPC) => {
+	// TODO update local datasets when you save to db
 	Account.findOne({username:websocket.context.currentUser}, (err, res) => {
 		if (err) {console.log(err);}
 		console.log(res) // should be the account record
