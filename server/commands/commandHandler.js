@@ -19,14 +19,13 @@ module.exports = (cmdParts, datasets, ws, callbackFunc) => {
             callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Unimplemented", data:{}}))
             break;
         case "ip":
-            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:ipCmd(datasets, ws), data:{}}))
+            callbackFunc(null, JSON.stringify({event:"command", ok:true, msg:ipCmd(datasets, ws), data:{}}))
             break;
         case "hostname":
-            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:hostnameCmd(datasets, ws), data:{}}))
+            callbackFunc(null, JSON.stringify({event:"command", ok:true, msg:hostnameCmd(datasets, ws), data:{}}))
             break;
         case "connect":
-            connectCmd();
-            callbackFunc(null, JSON.stringify({event:"command", ok:false, msg:"Unimplemented"}))
+            callbackFunc(null, JSON.stringify({event:"command", ok:true, msg:connectCmd(datasets, ws, cmdParts), data:{}}))
             break;
     }
 }

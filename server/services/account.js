@@ -67,9 +67,11 @@ const verifyAcctData = (datasets, websocket, id) => {
 			});
 			console.log(res)
 			websocket.context.currentComp = temporaryPC.id
+			websocket.context.connectionChain.push(temporaryPC.id)
 			updateHomeComp(datasets, websocket, temporaryPC);
 		} else {
 			websocket.context.currentComp = id;
+			websocket.context.connectionChain.push(id);
 		}
 	})
 	return compObj;
