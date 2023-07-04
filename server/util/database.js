@@ -120,83 +120,48 @@ const searchDBforDocument = (datasets, docType, criteria = {}) => {
     }
 }
 
-const searchForDocument = (datasets, docType, criteria = {}) => {
+const searchForDocumentByID = (datasets, docType, criteria) => {
     switch (docType) {
         case "comp":
-            // datasets.comp.filter((iterateComp) => {
-            //     for (var i = 0; i < Object.keys(criteria); i++) {
-            //         if (Object.keys(criteria)[i] in iterateComp) {
-            //             console.log(iterateComp)
-            //             console.log("ABOVE HAS")
-            //         } else {
-            //             console.log(iterateComp)
-            //             continue;
-            //         }
-            //     }
-            // });
-            // TODO change how you deal w the db
-            Object.fromEntries(Object.entries(criteria).filter(([key, value]) => { // Iterates over each key:val pair in the criteria
-                // console.log(key)
-                // console.log(value)
-                datasets.comp.filter((i) => {
-                    // console.log(i[key])
-                    // console.log(value)
-                    if (i[key] == value) {
-                        console.log("TRUE HERE")
-                        console.log(i)
-                        console.log(i.id)
-                        return i.id; // idk why it doesnt return properly
-                    }
-                });
-            }))
-            // Computer.find(criteria, (err, res) => {
-            //     if (err) { console.log(err); return err; }
-            //     if (res[0] != null || res[0] != undefined) { // it does exist
-            //         return res;
-            //     } else {
-            //         return null;
-            //     }
-            // })
+            return datasets.comp.find(i => i.id == criteria);
             break;
         case "netw":
-            Network.find({}, (err, res) => {
-                if (err) { console.log(err); return err; }
-                if (res[0] != null || res[0] != undefined) {
-                    return res;
-                } else {
-                    return null;
-                }
-            })
+            return datasets.netw.find(i => i.id == criteria);
             break;
         case "upgr":
-            Upgrade.find({}, (err, res) => {
-                if (err) { console.log(err); return err; }
-                if (res[0] != null || res[0] != undefined) {
-                    return res;
-                } else {
-                    return null;
-                }
-            })
+            return datasets.upgr.find(i => i.id == criteria);
             break;
         case "acct":
-            Account.find({}, (err, res) => {
-                if (err) { console.log(err); return err; }
-                if (res[0] != null || res[0] != undefined) {
-                    return res;
-                } else {
-                    return null;
-                }
-            })
+            return datasets.acct.find(i => i.id == criteria);
             break;
         case "user":
-            Player.find({}, (err, res) => {
-                if (err) { console.log(err); return err; }
-                if (res[0] != null || res[0] != undefined) {
-                    return res;
-                } else {
-                    return null;
-                }
-            })
+            return datasets.user.find(i => i.id == criteria);
+            break;
+        default:
+            break;
+    }
+}
+
+const searchForDocumentByDynamicField = (datasets, docType, dynamicField, criteria) => {
+    // TODO you know what you can do here
+    /*
+    return datasets[docType].find(i => i[dynamicField] == criteria);
+    */
+    switch (docType) {
+        case "comp":
+            return datasets.comp.find(i => i[dynamicField] == criteria);
+            break;
+        case "netw":
+            return datasets.netw.find(i => i[dynamicField] == criteria);
+            break;
+        case "upgr":
+            return datasets.upgr.find(i => i[dynamicField] == criteria);
+            break;
+        case "acct":
+            return datasets.acct.find(i => i[dynamicField] == criteria);
+            break;
+        case "user":
+            return datasets.user.find(i => i[dynamicField] == criteria);
             break;
         default:
             break;
@@ -205,6 +170,7 @@ const searchForDocument = (datasets, docType, criteria = {}) => {
 
 const deleteDocument = (datasets, docType, criteria = {}) => {}
 
+const searchForDocument = () => {};
 const searchLocalForDocument = searchForDocument;
 
 module.exports = {
@@ -212,5 +178,7 @@ module.exports = {
     searchDBforDocument,
     searchLocalForDocument,
     searchForDocument,
+    searchForDocumentByID,
+    searchForDocumentByDynamicField,
     deleteDocument
 }

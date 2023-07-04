@@ -6,7 +6,8 @@ module.exports = (datasets, ws, cmdParts) => {
         return "Usage: connect [IP ADDRESS]"
     } else if (cmdParts.length >= 1) {
         console.log(ws.context)
-        var cmdReturn = common.searchForDocument(datasets, "comp", {address:cmdParts[1]})
+        //var cmdReturn = common.searchForDocumentByID(datasets, "comp", {address:cmdParts[1]})
+        var cmdReturn = common.searchForDocumentByDynamicField(datasets, "comp", "address", cmdParts[1])
         // return "searching for " + cmdParts[1]
         return cmdReturn;
     } else if (cmdParts.length >= 2) {
