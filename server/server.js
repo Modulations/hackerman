@@ -67,11 +67,11 @@ wss.on('connection', (ws) => {
 	// TODO seperate worker dedicated to pushing DB progress every 30 minutes?
 	console.log('\nConnection established\n');
 
-	var clientId = uuid.v4();
-	ws.id = clientId;
 	ws.authed = false;
 	// above should not be touched
 	ws.context = {}
+	var clientId = uuid.v4();
+	ws.context.id = clientId;
 	ws.context.currentUser = "???";
 	ws.context.currentComp = null;
 	// TODO connection chain implementation
