@@ -6,6 +6,7 @@ const testCmd = require("./test.js");
 const scanCmd = require("./scan.js");
 const helpCmd = require("./help.js");
 const chainCmd = require("./chain.js");
+const specsCmd = require("./specs.js");
 
 module.exports = (cmdParts, datasets, ws, callbackFunc) => {
     console.log('PID ' + process.pid + "\nHandling command: " + cmdParts.join(" ") + "");
@@ -32,6 +33,9 @@ module.exports = (cmdParts, datasets, ws, callbackFunc) => {
             break;
         case "scan":
             callbackFunc(null, JSON.stringify({event:"command", ok:true, msg:scanCmd(datasets, ws, cmdParts), data:{}}))
+            break;
+        case "specs":
+            callbackFunc(null, JSON.stringify({event:"command", ok:true, msg:specsCmd(datasets, ws, cmdParts), data:{}}))
             break;
         case "chain":
             callbackFunc(null, JSON.stringify({event:"command", ok:true, msg:chainCmd(datasets, ws, cmdParts), data:{}}))

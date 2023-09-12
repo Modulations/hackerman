@@ -33,7 +33,8 @@ ws.on('open', async () => {
     ws.terminate();*/
     ws.send(buildEvent("register", {"username":"rock", "password":"aaaaaaa"}));
     await new Promise(resolve => setTimeout(resolve, 2000));
-    ws.send(buildEvent("sync", {}));
+    ws.send(buildEvent("command", {"cmd":"help"}))
+    // ws.send(buildEvent("sync", {}));
 });
 
 ws.on('message', (message) => {
