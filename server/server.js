@@ -69,20 +69,18 @@ wss.on('connection', (ws) => {
 
 	ws.authed = false;
 	// above should not be touched
-	ws.context = {}
 	var clientId = uuid.v4();
-	ws.context.id = clientId;
-	ws.context.currentUser = "???";
-	ws.context.currentComp = null;
-	// TODO connection chain implementation
-	ws.context.connectionChain = [];
-	console.log(ws.context.id);
+	playerService.makeContext(clientId);
+	ws.context = playerService.getContext(clientId);
+	ws.id = clientId
+	// TODO remove ws.context refs throughout the whole game
+	console.log(clientId);
 	clients.push(ws);
 	console.log("Active Connections: " + clients.length);
 
 	ws.on('message', async (message) => {
-		console.time(ws.context.id);
-		console.log(ws.context.id + " (" + ws.context.currentUser + ")");
+		console.time(clientId);
+		console.log(clientId + " (" + ws.context.currentUser + ")");
 		// in case someone doesnt send json
 		try {
 			message = JSON.parse(message.toString());
@@ -117,30 +115,34 @@ wss.on('connection', (ws) => {
 				var cmdParts = message.data.cmd.split(" ");
 				// TODO SANITIZE
 				console.log(cmdParts);
-				workers(cmdParts, datasets, ws, (err, out) => {ws.send(out)});
+				workers(cmdParts, datasets, ws, (err, out) => {
+					ws.send(out)
+					ws.context = playerService.getContext(); // TEMPORARY
+				});
 				//workerFarm.end(workers);
 			}
 			else if (message.event == "logout") {
 				ws.authed = false;
 				ws.send('{"event":"exit", "ok":true, "desc":"Logged out."}');
 				console.log("Unauthenticated user " + ws.context.currentUser);
-				ws.context.currentUser = "formerly " + ws.context.currentUser;
+				// ws.context.currentUser = "formerly " + ws.context.currentUser;
+				playerService.updateContextUser(clientId, null)
 			} else if (message.event == "sync") {
 				await databaseSync(datasets);
 				ws.send('{"event":"cmd", "ok":true}');
 			}
 		}
-		console.timeEnd(ws.context.id);
+		console.timeEnd(clientId);
 		console.log("");
 	});
 
 	ws.on('close', (data) => {
-		console.log(ws.context.id);
+		console.log(clientId);
 		var targetIndex = -1;
 		for (var v = 0; v < clients.length; v++) {
 			var client = clients[v];
 
-			if (client.id === ws.context.id)
+			if (client.id === clientId)
 				targetIndex = v;
 		}
 		// ^  find and

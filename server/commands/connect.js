@@ -1,4 +1,5 @@
 const common = require('../util/database.js')
+const playerService = require('../services/player.js')
 
 module.exports = (datasets, ws, cmdParts) => {
     // TODO actual work
@@ -11,9 +12,10 @@ module.exports = (datasets, ws, cmdParts) => {
         console.log(cmdReturn)
         console.log(cmdReturn != null)
         if (cmdReturn != null) {
-            ws.context.connectionChain.push(cmdReturn.id) // not pushing, not sure why
-            console.log(ws.context.connectionChain)
-            console.log(ws.context)
+            console.log(ws.context.id)
+            playerService.updateContextComp(ws.context.id, cmdReturn.id)
+            ws.context.connectionChain.push(cmdReturn.id)
+            playerService.updateContextChain(ws.context.id, ws.context.connectionChain)
         } else {
             return "Connection failed."
         }

@@ -38,6 +38,7 @@ const findAndAuthenticate = (datasets, websocket, usrname) => {
 	if (res != null || res != undefined) {
 		websocket.authed = true;
 		websocket.context.currentUser = usrname;
+		playerService.updateContextUser(websocket.id, usrname);
 		websocket.send('{"event":"auth", "ok":true}');
 		console.log("Found and successfully authenticated user " + res.username);
 		console.log(res)
@@ -45,7 +46,8 @@ const findAndAuthenticate = (datasets, websocket, usrname) => {
 		//return true;
 	} else {
 		websocket.authed = false;
-		websocket.context.currentUser = "???";
+		websocket.context.currentUser = null;
+		playerService.updateContextUser(websocket.id, null);
 		websocket.send('{"event":"auth", "ok":false}');
 		console.log("Authentication failed for user " + usrname + ". User not found");
 		//return false;
@@ -68,10 +70,14 @@ const verifyAcctData = (datasets, websocket, id) => {
 			console.log(res)
 			websocket.context.currentComp = temporaryPC.id
 			websocket.context.connectionChain.push(temporaryPC.id)
+			playerService.updateContextComp(websocket.id, temporaryPC.id)
+			playerService.updateContextChain(websocket.id, websocket.context.connectionChain)
 			updateHomeComp(datasets, websocket, temporaryPC);
 		} else {
 			websocket.context.currentComp = id;
 			websocket.context.connectionChain.push(id);
+			playerService.updateContextComp(websocket.id, id)
+			playerService.updateContextChain(websocket.id, websocket.context.connectionChain)
 		}
 	})
 	return compObj;
