@@ -54,20 +54,25 @@ const findAndAuthenticate = async (redisClient, websocket, usrname) => {
 	}
 }
 
+function redis_sanitize (sanStr) {
+	return sanStr.replace(/[,.?<>{}[\]"':;!@#$%^&()\-+=~|/\\ ]/g, "\\$&");
+}
+
 const verifyAcctData = async (redisClient, websocket, compId) => {
 	console.log(compId)
-	var res = await redisClient.ft.search(`idx:comp-dataset`, `@id:${compId}`)
-	console.log(res)
+	compId = redis_sanitize(compId)
+	console.log(compId)
+	var res = await redisClient.ft.search(`idx:comp-dataset`, `@id:{${compId}}`)
 	// TODO fix
 	// console.log(JSON.parse(JSON.stringify(res)).documents[0])
-	res = JSON.parse(JSON.stringify(res)).documents[0]
-	console.log(res)
-	if (res["value"] == null || res["value"] == undefined) { // PC does not exist
+	// res = JSON.parse(JSON.stringify(res)).documents[0]
+	console.log(res) // SHOULD JUST BE AN OBJECT!!!!!!
+	if (res == null || res == undefined) { // PC does not exist
 		console.log("Invalid home computer for user")
 		var temporaryPC = computerService.createComputer(); // TODO redis update
 		var compListLength = redisClient.lLen('comp-dataset')
 		console.log(compListLength)
-		redisClient.json.set(`comp-dataset:${compListLength}`, '$', temporaryPC);
+		redisClient.json.set(`comp-dataset:${compListLength}`, '$', temporaryPC); // TODO test this.
 		console.log("Created new computer " + temporaryPC.address);
 		
 		// TODO redis update
@@ -76,10 +81,11 @@ const verifyAcctData = async (redisClient, websocket, compId) => {
 		playerService.updateContextComp(websocket.id, temporaryPC.id)
 		playerService.updateContextChain(websocket.id, websocket.context.connectionChain)
 		updateHomeComp(datasets, websocket, temporaryPC);
-	} else { // Does not exist
-		websocket.context.currentComp = id;
-		websocket.context.connectionChain.push(id);
-		playerService.updateContextComp(websocket.id, id)
+	} else { // Does EXIST
+		// TODO F1X TH1S
+		websocket.context.currentComp = compId;
+		websocket.context.connectionChain.push(compId);
+		playerService.updateContextComp(websocket.id, compId)
 		playerService.updateContextChain(websocket.id, websocket.context.connectionChain)
 	}
 }

@@ -178,7 +178,7 @@ async function redisIndexer(rc) {
 		await rc.ft.DROPINDEX('idx:comp-dataset')
 		await rc.ft.create('idx:comp-dataset', {
 			'$.id': {
-				type: redis.SchemaFieldTypes.TEXT,
+				type: redis.SchemaFieldTypes.TAG,
 				SORTABLE: true,
 				AS: 'id'
 			},
@@ -190,15 +190,43 @@ async function redisIndexer(rc) {
 				type: redis.SchemaFieldTypes.NUMERIC,
 				AS: 'balance'
 			},
-			// NESTED OBJECTS DO NOT PLAY NICE WITH INDEXING
-			// '$.specs.*': {
+			'$.specs.cpu.name': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: 'specs_cpu_name'
+			},
+			'$.specs.cpu.clockSpeed': {
+				type: redis.SchemaFieldTypes.NUMERIC,
+				AS: 'specs_cpu_clockSpeed'
+			},
+			// TODO FIX THIS IN MEMORY
+			// '$.specs.memory': {
 			// 	type: redis.SchemaFieldTypes.TAG,
-			// 	AS: 'specs'
+			// 	AS: 'specs_memory'
 			// },
-			// '$.authUsers.*': {
-			// 	type: redis.SchemaFieldTypes.TAG,
-			// 	AS: 'authUsers'
-			// },
+			'$.specs.storage': {
+				type: redis.SchemaFieldTypes.NUMERIC,
+				AS: 'specs_storage'
+			},
+			'$.specs.tier': {
+				type: redis.SchemaFieldTypes.NUMERIC,
+				AS: 'specs_tier'
+			},
+			'$.authUsers.all': {
+				type: redis.SchemaFieldTypes.TAG,
+				AS: 'authUsers_all'
+			},
+			'$.authUsers.fs': {
+				type: redis.SchemaFieldTypes.TAG,
+				AS: 'authUsers_fs'
+			},
+			'$.authUsers.shell': {
+				type: redis.SchemaFieldTypes.TAG,
+				AS: 'authUsers_shell'
+			},
+			'$.authUsers.memory': {
+				type: redis.SchemaFieldTypes.TAG,
+				AS: 'authUsers_memory'
+			},
 			'$.creationDate': {
 				type: redis.SchemaFieldTypes.TEXT,
 				AS: 'creationDate'
@@ -207,15 +235,15 @@ async function redisIndexer(rc) {
 				type: redis.SchemaFieldTypes.TEXT,
 				AS: '_id'
 			},
-			'$address': {
+			'$.address': {
 				type: redis.SchemaFieldTypes.TEXT,
 				AS: 'address'
 			},
-			'$ports.*': {
-				type: redis.SchemaFieldTypes.TAG,
+			'$.ports.*': {
+				type: redis.SchemaFieldTypes.TEXT,
 				AS: 'ports'
 			},
-			'$__v': {
+			'$.__v': {
 				type: redis.SchemaFieldTypes.NUMERIC,
 				AS: '__v'
 			}
