@@ -79,6 +79,10 @@ async function databaseSync(datasets) {
 	syncOrErr(datasets.user);
 }
 
+//  | | | | | | | \\
+// end DB testing \\
+//  | | | | | | | \\
+
 
 async function redisHandler(ds, rc) {
 	console.time("redis db populated in")
@@ -112,11 +116,21 @@ async function redisHandler(ds, rc) {
 	// console.log(value);
 	// try making the index for accounts
 	// /*
+	await redisIndexer(rc);
+	// var test = await rc.ft.search(`idx:acct-dataset`, '@username:(root)')
+	// console.log(JSON.parse(JSON.stringify(test)).documents[0].value)
+	// console.log(JSON.parse(JSON.stringify(test)))
+	// */
+}
+
+async function redisIndexer(rc) {
 	try {
+		await rc.ft.DROPINDEX('idx:acct-dataset')
 		await rc.ft.create('idx:acct-dataset', {
 			'$.id': {
 				type: redis.SchemaFieldTypes.TEXT,
-				SORTABLE: true
+				SORTABLE: true,
+				AS: 'id'
 			},
 			'$.creationDate': {
 				type: redis.SchemaFieldTypes.TEXT,
@@ -159,15 +173,65 @@ async function redisHandler(ds, rc) {
 			process.exit(1);
 		}
 	}
-	// var test = await rc.ft.search(`idx:acct-dataset`, '@username:(root)')
-	// console.log(JSON.parse(JSON.stringify(test)).documents[0].value)
-	// console.log(JSON.parse(JSON.stringify(test)))
 
-	// */
+	try {
+		await rc.ft.DROPINDEX('idx:comp-dataset')
+		await rc.ft.create('idx:comp-dataset', {
+			'$.id': {
+				type: redis.SchemaFieldTypes.TEXT,
+				SORTABLE: true,
+				AS: 'id'
+			},
+			'$.name': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: 'name'
+			},
+			'$.balance': {
+				type: redis.SchemaFieldTypes.NUMERIC,
+				AS: 'balance'
+			},
+			// NESTED OBJECTS DO NOT PLAY NICE WITH INDEXING
+			// '$.specs.*': {
+			// 	type: redis.SchemaFieldTypes.TAG,
+			// 	AS: 'specs'
+			// },
+			// '$.authUsers.*': {
+			// 	type: redis.SchemaFieldTypes.TAG,
+			// 	AS: 'authUsers'
+			// },
+			'$.creationDate': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: 'creationDate'
+			},
+			'$._id': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: '_id'
+			},
+			'$address': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: 'address'
+			},
+			'$ports.*': {
+				type: redis.SchemaFieldTypes.TAG,
+				AS: 'ports'
+			},
+			'$__v': {
+				type: redis.SchemaFieldTypes.NUMERIC,
+				AS: '__v'
+			}
+		}, {
+			ON: 'JSON',
+			PREFIX: 'comp-dataset:'
+		});
+	} catch (e) {
+		if (e.message === 'Index already exists') {
+			console.log('comp index already exists');
+		} else {
+			// Something went wrong, perhaps RediSearch isn't installed...
+			console.error(e);
+			process.exit(1);
+		}
+	}
 }
-
-//  | | | | | | | \\
-// end DB testing \\
-//  | | | | | | | \\
 
 module.exports = { databaseInit: databaseInit, databasePull: databasePull, databaseSync: databaseSync, redisHandler: redisHandler }

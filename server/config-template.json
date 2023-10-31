@@ -2,5 +2,6 @@
     "username": "USERNAME",
     "password": "PASSWORD",
     "hostname": "HOSTNAME",
+    "redisURL": "redis://localhost:6379",
     "comments":"Rename this file to config.json!"
 }

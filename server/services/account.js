@@ -32,55 +32,56 @@ const doesAccountNameExist = (usrname) => {
 	});
 }
 
-const findAndAuthenticate = (datasets, websocket, usrname) => {
-	Account.findOne({username:usrname}, (err, res) => {
-	if (err) {console.log(err);}
-	if (res != null || res != undefined) {
+const findAndAuthenticate = async (redisClient, websocket, usrname) => {
+	var res = await redisClient.ft.search(`idx:acct-dataset`, `@username:(${usrname})`)
+	// console.log(JSON.parse(JSON.stringify(res)).documents[0])
+	res = JSON.parse(JSON.stringify(res)).documents[0]
+	console.log(res['value'])
+	if (res["value"] != null || res["value"] != undefined) {
 		websocket.authed = true;
 		websocket.context.currentUser = usrname;
-		playerService.updateContextUser(websocket.id, usrname);
+		playerService.updateContextUser(websocket.id, usrname); // TODO redis update
 		websocket.send('{"event":"auth", "ok":true}');
-		console.log("Found and successfully authenticated user " + res.username);
+		console.log("Found and successfully authenticated user " + res.value.username);
 		console.log(res)
-		verifyAcctData(datasets, websocket, res.homeComp);
-		//return true;
+		verifyAcctData(redisClient, websocket, res.value.homeComp);
 	} else {
 		websocket.authed = false;
 		websocket.context.currentUser = null;
 		playerService.updateContextUser(websocket.id, null);
 		websocket.send('{"event":"auth", "ok":false}');
 		console.log("Authentication failed for user " + usrname + ". User not found");
-		//return false;
 	}
-	//return res;
-	})
 }
 
-const verifyAcctData = (datasets, websocket, id) => {
-	var compObj = Computer.find({id:id}, (err, res) => {
-		if (err) {console.log(err); return false;}
-		if (res[0] == null || res[0] == undefined) { // does it exist?
-			console.log("Invalid home computer for user")
-			var temporaryPC = computerService.createComputer();
-			temporaryPC.save((err) => { // save to db
-				if (err) return console.log(err);
-				console.log("Created new computer " + temporaryPC.address);
-				datasets.comp.push(temporaryPC);
-			});
-			console.log(res)
-			websocket.context.currentComp = temporaryPC.id
-			websocket.context.connectionChain.push(temporaryPC.id)
-			playerService.updateContextComp(websocket.id, temporaryPC.id)
-			playerService.updateContextChain(websocket.id, websocket.context.connectionChain)
-			updateHomeComp(datasets, websocket, temporaryPC);
-		} else {
-			websocket.context.currentComp = id;
-			websocket.context.connectionChain.push(id);
-			playerService.updateContextComp(websocket.id, id)
-			playerService.updateContextChain(websocket.id, websocket.context.connectionChain)
-		}
-	})
-	return compObj;
+const verifyAcctData = async (redisClient, websocket, compId) => {
+	console.log(compId)
+	var res = await redisClient.ft.search(`idx:comp-dataset`, `@id:${compId}`)
+	console.log(res)
+	// TODO fix
+	// console.log(JSON.parse(JSON.stringify(res)).documents[0])
+	res = JSON.parse(JSON.stringify(res)).documents[0]
+	console.log(res)
+	if (res["value"] == null || res["value"] == undefined) { // PC does not exist
+		console.log("Invalid home computer for user")
+		var temporaryPC = computerService.createComputer(); // TODO redis update
+		var compListLength = redisClient.lLen('comp-dataset')
+		console.log(compListLength)
+		redisClient.json.set(`comp-dataset:${compListLength}`, '$', temporaryPC);
+		console.log("Created new computer " + temporaryPC.address);
+		
+		// TODO redis update
+		websocket.context.currentComp = temporaryPC.id
+		websocket.context.connectionChain.push(temporaryPC.id)
+		playerService.updateContextComp(websocket.id, temporaryPC.id)
+		playerService.updateContextChain(websocket.id, websocket.context.connectionChain)
+		updateHomeComp(datasets, websocket, temporaryPC);
+	} else { // Does not exist
+		websocket.context.currentComp = id;
+		websocket.context.connectionChain.push(id);
+		playerService.updateContextComp(websocket.id, id)
+		playerService.updateContextChain(websocket.id, websocket.context.connectionChain)
+	}
 }
 
 const updateHomeComp = (datasets, websocket, newPC) => {
