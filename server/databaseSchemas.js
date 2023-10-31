@@ -1,6 +1,7 @@
 const
 	mongoose = require('mongoose'),
-	uuid = require('uuid');
+	uuid = require('uuid'),
+	redis = require('redis');
 
 const {
 	computerService: computerService,
@@ -46,12 +47,11 @@ async function databasePull(datasets) {
 	datasets.upgr = await Upgrade.find({})
 	datasets.comp = await Computer.find({})
 	datasets.user = await Player.find({})
-	if (datasets.acct.length == 0) { console.log("acct empty") } else { console.log("acct success") }
-	if (datasets.netw.length == 0) { console.log("netw empty") } else { console.log("netw success") }
-	if (datasets.upgr.length == 0) { console.log("upgr empty") } else { console.log("upgr success") }
-	if (datasets.comp.length == 0) { console.log("comp empty") } else { console.log("comp success") }
-	if (datasets.user.length == 0) { console.log("user empty") } else { console.log("user success") }
-	// this can 100% be cleaned up
+	console.log(datasets.acct.length < 1 ? "acct empty" : "acct success")
+	console.log(datasets.netw.length < 1 ? "netw empty" : "netw success")
+	console.log(datasets.upgr.length < 1 ? "upgr empty" : "upgr success")
+	console.log(datasets.comp.length < 1 ? "comp empty" : "comp success")
+	console.log(datasets.user.length < 1 ? "user empty" : "user success")
 	return datasets;
 }
 
@@ -79,8 +79,95 @@ async function databaseSync(datasets) {
 	syncOrErr(datasets.user);
 }
 
+
+async function redisHandler(ds, rc) {
+	console.time("redis db populated in")
+	//rc.del('acct-dataset:*')
+	await ds['acct'].forEach(async function (item, i) {
+		await rc.json.set(`acct-dataset:${i}`, '$', item)
+	});
+	
+	/*await ds['netw'].forEach((item, i) => {
+		rc.set(`netw-dataset:${i}`, JSON.stringify(item))
+	});*/
+
+	await ds['netw'].forEach(async function (item, i) {
+		await rc.json.set(`netw-dataset:${i}`, '$', item)
+	});
+
+	await ds['comp'].forEach(async function (item, i) {
+		await rc.json.set(`comp-dataset:${i}`, '$', item)
+	});
+
+	await ds['upgr'].forEach(async function (item, i) {
+		await rc.json.set(`upgr-dataset:${i}`, '$', item)
+	});
+
+	await ds['user'].forEach(async function (item, i) {
+		await rc.json.set(`user-dataset:${i}`, '$', item)
+	});
+	
+	console.timeEnd("redis db populated in")
+	// const value = await rc.get('acct-dataset');
+	// console.log(value);
+	// try making the index for accounts
+	// /*
+	try {
+		await rc.ft.create('idx:acct-dataset', {
+			'$.id': {
+				type: redis.SchemaFieldTypes.TEXT,
+				SORTABLE: true
+			},
+			'$.creationDate': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: 'creationDate'
+			},
+			'$._id': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: '_id'
+			},
+			'$.username': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: 'username'
+			},
+			'$.passwdHash': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: 'passwdHash'
+			},
+			'$.network': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: 'network'
+			},
+			'$.homeComp': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: 'homeComp'
+			},
+			'$__v': {
+				type: redis.SchemaFieldTypes.NUMERIC,
+				AS: '__v'
+			}
+		}, {
+			ON: 'JSON',
+			PREFIX: 'acct-dataset:'
+		});
+	} catch (e) {
+		if (e.message === 'Index already exists') {
+			console.log('acct index already exists');
+		} else {
+			// Something went wrong, perhaps RediSearch isn't installed...
+			console.error(e);
+			process.exit(1);
+		}
+	}
+	// var test = await rc.ft.search(`idx:acct-dataset`, '@username:(root)')
+	// console.log(JSON.parse(JSON.stringify(test)).documents[0].value)
+	// console.log(JSON.parse(JSON.stringify(test)))
+
+	// */
+}
+
 //  | | | | | | | \\
 // end DB testing \\
 //  | | | | | | | \\
 
-module.exports = { databaseInit: databaseInit, databasePull: databasePull, databaseSync: databaseSync }
+module.exports = { databaseInit: databaseInit, databasePull: databasePull, databaseSync: databaseSync, redisHandler: redisHandler }

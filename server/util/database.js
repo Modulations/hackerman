@@ -9,6 +9,21 @@ const {
 
 // TODO complete
 
+const saveDocByID = (datasets) => {
+    return "Unimplemented"
+}
+
+const findLocalSingle = async function (redisClient, searchDB, attributeToFindBy, valueToFindBy) {
+    var toFind = await JSON.parse(redisClient.getall(searchDB))
+    toFind.forEach((x, i) => {
+        try {
+            x[attributeToFindBy] == valueToFindBy;
+        } catch {
+            return;
+        }
+    })
+}
+
 const saveDocumentToDB = (datasets, docType, doc, criteria = {}) => {
     return "Unimplemented";
     switch (docType) {

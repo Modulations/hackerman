@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const uuid = require('uuid');
 const db = mongoose.connection;
 const BSON = require('bson');
+const redis = require('redis');
 
 // services index
 const {
@@ -13,19 +14,25 @@ const {
 	playerService: playerService
 } = require("./services");
 
+// file imports
+const configFile = require("./config.json")
+
+// redis setup
+// has to come before workers
+const redisClient = redis.createClient({ url: configFile.redisURL });
+redisClient.connect('hackerman-redis');
+
 // worker setup (WIP)
 // TODO proper workers
 var workerFarm = require('worker-farm');
 var workers = workerFarm(require.resolve('./commands/commandHandler.js'));
 var ret = 0;
 
-// file imports
-const configFile = require("./config.json")
-
 const {
 	databaseInit,
 	databasePull,
-	databaseSync
+	databaseSync,
+	redisHandler
 } = require("./databaseSchemas.js")
 
 var datasets = {};
@@ -55,7 +62,9 @@ db.once('open', () => {
 async function databaseHandler() {
 	await databaseInit();
 	datasets = await databasePull(datasets);
+	await redisHandler(datasets, redisClient);
 }
+redisClient.on('error', (err) => {console.log('Redis Client Error', err)})
 databaseHandler();
 // MAKE SURE CURRENT IP ADDRESS IS WHITELISTED
 // DO NOT TOUCH ABOVE CODE
