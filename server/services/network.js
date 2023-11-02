@@ -14,6 +14,7 @@ const createNetwork = (netName = "Indexed", primComp) => {
 }
 
 const initializeInDatabase = async (newNetw) => (
+	// TODO redis update
     Network.find({name:"Proving Grounds"}, (err, result) => {
 		if (err) { console.log(err); }
 		if (result[0] == null || result[0] == undefined) { // does it exist?

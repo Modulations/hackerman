@@ -28,24 +28,25 @@ const genCompName = () => {
 const createComputer = (name = genCompName()) => {
     var compUUID = uuid.v4();
 	var addr = genNodeName();
-	// var name = genCompName();
+	// TODO should be okay
 	var registerComp = new Computer({
 		id:compUUID,
 		address:addr,
 		name:name,
 		balance:0,
-		specs: {cpu:{name:"Shitter CPU", clockSpeed:2.4}, memory:{}, storage:256},
+		specs: {cpu:{name:"Unidentified CPU", clockSpeed:2.4}, memory:8, storage:256},
 		authUsers: {all:["atlas"], fs:[], shell:[], memory:[]},
-		ports: {},
+		ports: {22:true},
 		creationDate:Date.now()
 	});
 	return registerComp;
 }
 
 const initializeInDatabase = async (newComp) => (
+	// TODO change to redis
     Computer.find({}, (err, res) => {
 		if (err) { console.log(err); }
-		if (res[0] == null || res[0] == undefined) { // does it exist?
+		if (res[0] == null || res[0] == undefined) { // does NOT exist
 			newComp.save((err) => { // save to db
 				if (err) return console.log(err);
 				console.log("Created new computer " + newComp.address);

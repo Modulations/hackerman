@@ -40,7 +40,7 @@ const findAndAuthenticate = async (redisClient, websocket, usrname) => {
 	if (res["value"] != null || res["value"] != undefined) {
 		websocket.authed = true;
 		websocket.context.currentUser = usrname;
-		playerService.updateContextUser(websocket.id, usrname); // TODO redis update
+		playerService.updateContextUser(websocket.id, usrname, redisClient); // TODO redis update
 		websocket.send('{"event":"auth", "ok":true}');
 		console.log("Found and successfully authenticated user " + res.value.username);
 		console.log(res)
@@ -59,34 +59,31 @@ function redis_sanitize (sanStr) {
 }
 
 const verifyAcctData = async (redisClient, websocket, compId) => {
-	console.log(compId)
-	compId = redis_sanitize(compId)
-	console.log(compId)
-	var res = await redisClient.ft.search(`idx:comp-dataset`, `@id:{${compId}}`)
+	var res = await redisClient.ft.search(`idx:comp-dataset`, `@id:{${redis_sanitize(compId)}}`)
 	// TODO fix
 	// console.log(JSON.parse(JSON.stringify(res)).documents[0])
 	// res = JSON.parse(JSON.stringify(res)).documents[0]
 	console.log(res) // SHOULD JUST BE AN OBJECT!!!!!!
 	if (res == null || res == undefined) { // PC does not exist
 		console.log("Invalid home computer for user")
-		var temporaryPC = computerService.createComputer(); // TODO redis update
+		var temporaryPC = computerService.createComputer();
 		var compListLength = redisClient.lLen('comp-dataset')
 		console.log(compListLength)
 		redisClient.json.set(`comp-dataset:${compListLength}`, '$', temporaryPC); // TODO test this.
 		console.log("Created new computer " + temporaryPC.address);
 		
 		// TODO redis update
-		websocket.context.currentComp = temporaryPC.id
-		websocket.context.connectionChain.push(temporaryPC.id)
-		playerService.updateContextComp(websocket.id, temporaryPC.id)
-		playerService.updateContextChain(websocket.id, websocket.context.connectionChain)
+		// websocket.context.currentComp = temporaryPC.id
+		// websocket.context.connectionChain.push(temporaryPC.id)
+		playerService.updateContextComp(websocket.id, temporaryPC.id, redisClient)
+		playerService.updateContextChain(websocket.id, websocket.context.connectionChain, redisClient)
 		updateHomeComp(datasets, websocket, temporaryPC);
 	} else { // Does EXIST
 		// TODO F1X TH1S
-		websocket.context.currentComp = compId;
-		websocket.context.connectionChain.push(compId);
-		playerService.updateContextComp(websocket.id, compId)
-		playerService.updateContextChain(websocket.id, websocket.context.connectionChain)
+		// websocket.context.currentComp = compId;
+		// websocket.context.connectionChain.push(compId);
+		playerService.updateContextComp(websocket.id, compId, redisClient)
+		playerService.updateContextChain(websocket.id, websocket.context.connectionChain, redisClient)
 	}
 }
 

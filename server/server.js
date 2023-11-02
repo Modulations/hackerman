@@ -78,9 +78,10 @@ wss.on('connection', (ws) => {
 
 	ws.authed = false;
 	// above should not be touched
+	// TODO redis update
 	var clientId = uuid.v4();
-	playerService.makeContext(clientId);
-	ws.context = playerService.getContext(clientId);
+	playerService.makeContext(clientId, redisClient);
+	ws.context = playerService.getContext(clientId, redisClient);
 	ws.id = clientId
 	// TODO remove ws.context refs throughout the whole game
 	console.log(clientId);
@@ -178,9 +179,9 @@ wss.on('error', (err) => {
 
 console.log(`Server listening on port ${port}`);
 
-var gameLoopID = setInterval(gameLoop, 5000);
+// var gameLoopID = setInterval(gameLoop, 5000); // 5 seconds
 
 function gameLoop() {
 	// shitters
-	//console.log("shitFuckers")
+	console.log("saved game")
 }

@@ -260,6 +260,40 @@ async function redisIndexer(rc) {
 			process.exit(1);
 		}
 	}
+
+	try {
+		await rc.ft.DROPINDEX('idx:context')
+		await rc.ft.create('idx:context', {
+			'$.id': {
+				type: redis.SchemaFieldTypes.TAG,
+				SORTABLE: true,
+				AS: 'id'
+			},
+			'$.currentUser': {
+				type: redis.SchemaFieldTypes.TEXT,
+				AS: 'currentUser'
+			},
+			'$.currentComp': {
+				type: redis.SchemaFieldTypes.TAG,
+				AS: 'balance'
+			},
+			'$.connectionChain': {
+				type: redis.SchemaFieldTypes.TAG,
+				AS: 'specs_cpu_name'
+			}
+		}, {
+			ON: 'JSON',
+			PREFIX: 'context:'
+		});
+	} catch (e) {
+		if (e.message === 'Index already exists') {
+			console.log('context index already exists');
+		} else {
+			// Something went wrong, perhaps RediSearch isn't installed...
+			console.error(e);
+			process.exit(1);
+		}
+	}
 }
 
 module.exports = { databaseInit: databaseInit, databasePull: databasePull, databaseSync: databaseSync, redisHandler: redisHandler }

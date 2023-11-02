@@ -1,8 +1,9 @@
 const { PlayerModel: Player } = require('../models');
+const { redis_sanitize, safeSearch } = require('../util/common.js');
 const uuid = require('uuid');
 var context = {}
 
-const makeContext = (clientID) => {
+const makeContext = async (clientID, redisClient) => {
 	var entry = {
 		id: clientID,
 		currentUser: null,
@@ -10,32 +11,39 @@ const makeContext = (clientID) => {
 		connectionChain: []
 	}
 	context[clientID] = entry;
-	console.log("words words words")
-	console.log(context)
+	userContext = await redisClient.json.set(`context:${clientID}`, '$', entry)
+	console.log(userContext)
 	return entry;
 }
 
-const updateContextUser = (clientID, newUser) => {
-	context[clientID].currentUser = newUser;
-	return context[clientID];
+const updateContextUser = async (clientID, newUser, redisClient) => {
+	// var res = await redisClient.ft.search(`idx:context`, `@id:{${common.redis_sanitize(clientID)}}`)
+	var res = await safeSearch(redisClient, 'idx:context', 'id', clientID)
+	console.log(res)
+	res.currentUser = newUser;
+	await redisClient.json.set(`context:${clientID}`, '$', res)
+	return res;
 };
-const updateContextComp = (clientID, newComp) => {
-	console.log("cid below")
-	console.log(clientID)
-	console.log("con below")
-	console.log(context)
-	context[clientID].currentComp = newComp;
-	return context[clientID];
+const updateContextComp = async (clientID, newComp, redisClient) => {
+	// var res = await redisClient.ft.search(`idx:context`, `@id:{${common.redis_sanitize(clientID)}}`)
+	var res = await safeSearch(redisClient, 'idx:context', 'id', clientID)
+	res.currentComp = newComp;
+	await redisClient.json.set(`context:${clientID}`, '$', res)
+	return res;
 };
-const updateContextChain = (clientID, newChain) => {
+const updateContextChain = async (clientID, newChain, redisClient) => {
 	context[clientID].connectionChain = newChain;
 	return context[clientID];
 };
-const getContext = (clientID) => {
-	return context[clientID];
+const getContext = async (clientID, redisClient) => {
+	// var res = await redisClient.json.set(`context:${clientID}`, '$', entry)
+	// var res = await redisClient.ft.search(`idx:context`, `@id:{${redis_sanitize(clientID)}}`)
+	var res = await safeSearch(redisClient, 'idx:context', 'id', clientID)
+	console.log(res)
+	return res;
 };
 
-const createPlayer = (username, passwd) => {
+const createPlayer = async (username, passwd) => {
     var playerUUID = uuid.v4();
     var playerEntry = new Account({id:acctUUID, username, passwdHash:passwd, network:netwUUID, homeComp:99999999, creationDate:Date.now()});
 	return playerEntry;
