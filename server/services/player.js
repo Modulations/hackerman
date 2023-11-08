@@ -12,13 +12,15 @@ const makeContext = async (clientID, redisClient) => {
 	}
 	context[clientID] = entry;
 	userContext = await redisClient.json.set(`context:${clientID}`, '$', entry)
-	console.log(userContext)
+	//console.log("made context:")
+	//console.log(userContext) // returns "OK"
 	return entry;
 }
 
-const updateContextUser = async (clientID, newUser, redisClient) => {
+const updateContextUser = async (redisClient, clientID, newUser) => {
 	// var res = await redisClient.ft.search(`idx:context`, `@id:{${common.redis_sanitize(clientID)}}`)
 	var res = await safeSearch(redisClient, 'idx:context', 'id', clientID)
+	console.log("updating context user")
 	console.log(res)
 	res.currentUser = newUser;
 	await redisClient.json.set(`context:${clientID}`, '$', res)
@@ -39,7 +41,8 @@ const getContext = async (clientID, redisClient) => {
 	// var res = await redisClient.json.set(`context:${clientID}`, '$', entry)
 	// var res = await redisClient.ft.search(`idx:context`, `@id:{${redis_sanitize(clientID)}}`)
 	var res = await safeSearch(redisClient, 'idx:context', 'id', clientID)
-	console.log(res)
+	//console.log("getting context")
+	//console.log(res)
 	return res;
 };
 

@@ -15,6 +15,7 @@ const upgradeService = require("./upgrade.js");
 const playerService = require("./player.js");
 
 const uuid = require('uuid');
+const { safeSearch } = require('../util/common.js');
 
 
 const createAccount = (username, passwd, netw) => {
@@ -26,6 +27,7 @@ const createAccount = (username, passwd, netw) => {
 }
 
 const doesAccountNameExist = (usrname) => {
+	// TODO change to redis
 	Account.exists({username:usrname}, (err, data) => {
 		console.log(data);
 		return data;
@@ -33,33 +35,32 @@ const doesAccountNameExist = (usrname) => {
 }
 
 const findAndAuthenticate = async (redisClient, websocket, usrname) => {
-	var res = await redisClient.ft.search(`idx:acct-dataset`, `@username:(${usrname})`)
+	// var res = await redisClient.ft.search(`idx:acct-dataset`, `@username:(${usrname})`)
+	var res = await safeSearch(redisClient, 'idx:acct-dataset', 'username', usrname)
+	console.log(res)
 	// console.log(JSON.parse(JSON.stringify(res)).documents[0])
-	res = JSON.parse(JSON.stringify(res)).documents[0]
-	console.log(res['value'])
-	if (res["value"] != null || res["value"] != undefined) {
+	// res = JSON.parse(JSON.stringify(res)).documents[0]
+	// console.log(res)
+	if (res != null || res != undefined) {
 		websocket.authed = true;
 		websocket.context.currentUser = usrname;
-		playerService.updateContextUser(websocket.id, usrname, redisClient); // TODO redis update
+		playerService.updateContextUser(redisClient, websocket.id, usrname); // TODO redis update
 		websocket.send('{"event":"auth", "ok":true}');
-		console.log("Found and successfully authenticated user " + res.value.username);
+		console.log("Found and successfully authenticated user " + res.username);
 		console.log(res)
-		verifyAcctData(redisClient, websocket, res.value.homeComp);
+		verifyAcctData(redisClient, websocket, res.homeComp);
 	} else {
 		websocket.authed = false;
 		websocket.context.currentUser = null;
-		playerService.updateContextUser(websocket.id, null);
+		playerService.updateContextUser(redisClient, websocket.id, null);
 		websocket.send('{"event":"auth", "ok":false}');
 		console.log("Authentication failed for user " + usrname + ". User not found");
 	}
 }
 
-function redis_sanitize (sanStr) {
-	return sanStr.replace(/[,.?<>{}[\]"':;!@#$%^&()\-+=~|/\\ ]/g, "\\$&");
-}
-
 const verifyAcctData = async (redisClient, websocket, compId) => {
-	var res = await redisClient.ft.search(`idx:comp-dataset`, `@id:{${redis_sanitize(compId)}}`)
+	// var res = await redisClient.ft.search(`idx:comp-dataset`, `@id:{${redis_sanitize(compId)}}`)
+	var res = await safeSearch(redisClient, 'idx:comp-dataset', 'id', compId)
 	// TODO fix
 	// console.log(JSON.parse(JSON.stringify(res)).documents[0])
 	// res = JSON.parse(JSON.stringify(res)).documents[0]
@@ -67,7 +68,7 @@ const verifyAcctData = async (redisClient, websocket, compId) => {
 	if (res == null || res == undefined) { // PC does not exist
 		console.log("Invalid home computer for user")
 		var temporaryPC = computerService.createComputer();
-		var compListLength = redisClient.lLen('comp-dataset')
+		var compListLength = await redisClient.lLen('comp-dataset')
 		console.log(compListLength)
 		redisClient.json.set(`comp-dataset:${compListLength}`, '$', temporaryPC); // TODO test this.
 		console.log("Created new computer " + temporaryPC.address);

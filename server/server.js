@@ -136,7 +136,7 @@ wss.on('connection', (ws) => {
 				ws.send('{"event":"exit", "ok":true, "desc":"Logged out."}');
 				console.log("Unauthenticated user " + ws.context.currentUser);
 				// ws.context.currentUser = "formerly " + ws.context.currentUser;
-				playerService.updateContextUser(clientId, null)
+				playerService.updateContextUser(redisClient, clientId, null)
 			} else if (message.event == "sync") {
 				await databaseSync(datasets);
 				ws.send('{"event":"cmd", "ok":true}');
